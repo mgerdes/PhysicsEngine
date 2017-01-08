@@ -47,7 +47,7 @@ struct Instance {
 struct Transform {
     vec3 scale;
     vec3 translation;
-    quat rotation;
+    quat orientation;
 };
 
 class Scene {

@@ -4,7 +4,7 @@ void Renderer::paint() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
 
     Camera *camera = &this->scene->camera;
-    mat4 view_mat = mat4::look_at(&camera->eye, &camera->target, &camera->up);
+    mat4 view_mat = mat4::look_at(camera->eye, camera->target, camera->up);
     mat4 proj_mat = mat4::perspective_projection(camera->fov, camera->aspect, camera->near, camera->far);
 
     glUseProgram(this->shader);
@@ -18,7 +18,11 @@ void Renderer::paint() {
         Transform transform = this->scene->transforms[instance.transform_id];
         Material material = this->scene->materials[mesh.material_id];
 
-        mat4 model_mat = mat4::translation(&transform.translation) * mat4::scale(&transform.scale);
+        mat4 translation = mat4::translation(transform.translation);
+        mat4 scale = mat4::scale(transform.scale);
+        mat4 rotation = transform.orientation.get_matrix();
+
+        mat4 model_mat = translation * rotation * scale;
         glUniformMatrix4fv(0, 1, GL_TRUE, model_mat.m);
 
         glActiveTexture(GL_TEXTURE0);

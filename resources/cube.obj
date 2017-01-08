@@ -5,7 +5,7 @@
 #
 # http://graphics.cs.williams.edu/data
 
-mtllib default.mtl
+mtllib resources/default.mtl
 
 v -0.5 0.5 -0.5
 v -0.5 0.5 0.5

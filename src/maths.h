@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -22,18 +23,22 @@ struct vec3 {
     vec3(float x, float y, float z);
     vec3(float v[3]);
 
-    static float dot(vec3 *v1, vec3 *v2);
-    static vec3 normalize(vec3 *v);
-    static vec3 cross(vec3 *v1, vec3 *v2);
-    static void print(vec3 *v);
+    vec3 normalize() const;
+    float length() const;
+    void print() const;
+
+    static float dot(const vec3 &v1, const vec3 &v2);
+    static vec3 cross(const vec3 &v1, const vec3 &v2);
 };
 
 vec3 operator+(const vec3 &u, const vec3 &v);
+vec3 operator-(const vec3 &u, const vec3 &v);
+vec3 operator*(float s , const vec3 &v);
 
 struct vec4 {
     float x, y, z, w;
 
-    static void print(vec4 *v);
+    void print();
 };
 
 struct mat4 {
@@ -45,27 +50,37 @@ struct mat4 {
             float i, float j, float k, float l,
             float m, float n, float o, float p);
 
-    static mat4 translation(vec3 *v);
-    static mat4 scale(vec3 *v);
+    mat4 inverse();
+    mat4 transpose();
+    mat4 normal_transform();
+    void print();
+
+    static mat4 translation(const vec3 &v);
+    static mat4 scale(const vec3 &v);
     static mat4 rotation_x(float theta);
     static mat4 rotation_y(float theta);
     static mat4 rotation_z(float theta);
-    static mat4 inverse(mat4 *m);
-    static mat4 transpose(mat4 *m);
-    static mat4 normal_transform(mat4 *m);
-    static mat4 look_at(vec3 *eye, vec3 *target, vec3 *up);
+    static mat4 look_at(const vec3 &eye, const vec3 &target, const vec3 &up);
     static mat4 perspective_projection(float fov, float aspect, float near, float far);
     static mat4 orthographic_projection(float right, float left, float top, float bottom, float near, float far);
-    static void print(mat4 *m);
 };
 
-mat4 operator*(const mat4 &u, const mat4 &v);
+mat4 operator*(const mat4 &m1, const mat4 &m2);
+vec3 operator*(const mat4 &u, const vec3 &v);
 
 struct quat {
     float x, y, z, w;
 
     quat();
+    quat(float x, float y, float z, float w);
+    quat(const vec3 &v, float theta);
+
+    quat normalize();
+    mat4 get_matrix();
+    void print();
 };
+
+quat operator*(const quat &u, const quat &v);
 
 struct ray {
     vec3 origin, direction; 

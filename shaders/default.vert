@@ -14,6 +14,6 @@ out vec2 frag_tex_coord;
 void main () {
     gl_Position = proj_mat * view_mat * model_mat * vec4(vertex_position, 1.0);
     frag_position = (model_mat * vec4(vertex_position, 1.0)).xyz;
-    frag_normal = vertex_normal;
+    frag_normal = (inverse(transpose(model_mat)) * vec4(vertex_normal, 1.0)).xyz;
     frag_tex_coord = vertex_tex_coord;
 }

@@ -4,9 +4,9 @@ HEADERS = $(wildcard src/*.h)
 SOURCES = $(wildcard src/*.cpp)
 OBJS = $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:%.o=%.d)
-CFLAGS = -Iobjects -Isrc -lGL -lGLEW -lglfw -lm -O2
+CFLAGS = -Iobjects -Isrc -lGL -lGLEW -lglfw -lm -O2 
 
-all: $(BUILD_DIR) $(BUILD_DIR)/$(BIN)
+all: $(BUILD_DIR) $(BUILD_DIR)/$(BIN) 
 
 $(BUILD_DIR):
 	mkdir ${BUILD_DIR}

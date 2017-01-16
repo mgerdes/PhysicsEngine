@@ -82,13 +82,13 @@ void PhysicsEngine::check_for_collision(RigidBody *body1, RigidBody *body2) {
     mat4 transformation2 = body2->orientation.get_matrix();
     vec3 axes[15];
 
-    axes[0] =  vec3(transformation1.m[0], transformation1.m[4], transformation1.m[8]);
-    axes[1] =  vec3(transformation1.m[1], transformation1.m[5], transformation1.m[9]);
-    axes[2] =  vec3(transformation1.m[2], transformation1.m[6], transformation1.m[10]);
+    axes[0] = vec3(transformation1.m[0], transformation1.m[4], transformation1.m[8]);
+    axes[1] = vec3(transformation1.m[1], transformation1.m[5], transformation1.m[9]);
+    axes[2] = vec3(transformation1.m[2], transformation1.m[6], transformation1.m[10]);
 
-    axes[3] =  vec3(transformation2.m[0], transformation2.m[4], transformation2.m[8]);
-    axes[4] =  vec3(transformation2.m[1], transformation2.m[5], transformation2.m[9]);
-    axes[5] =  vec3(transformation2.m[2], transformation2.m[6], transformation2.m[10]);
+    axes[3] = vec3(transformation2.m[0], transformation2.m[4], transformation2.m[8]);
+    axes[4] = vec3(transformation2.m[1], transformation2.m[5], transformation2.m[9]);
+    axes[5] = vec3(transformation2.m[2], transformation2.m[6], transformation2.m[10]);
 
     axes[6] = vec3::cross(axes[0], axes[3]);
     axes[7] = vec3::cross(axes[0], axes[4]);
@@ -104,6 +104,7 @@ void PhysicsEngine::check_for_collision(RigidBody *body1, RigidBody *body2) {
 
     float best_overlap = FLT_MAX;
     int best_case;
+    int best_single_axis_case;
     vec3 to_center = body2->position - body1->position;
 
     for (int k = 0; k < 15; k++) {
@@ -121,6 +122,10 @@ void PhysicsEngine::check_for_collision(RigidBody *body1, RigidBody *body2) {
         if (overlap < best_overlap) {
             best_overlap = overlap;
             best_case = k;
+        }
+
+        if (k == 5) {
+            best_single_axis_case = best_case;
         }
     }
 
@@ -183,17 +188,19 @@ void PhysicsEngine::check_for_collision(RigidBody *body1, RigidBody *body2) {
         contacts.push_back(contact);
     }
     else {
-        vec3 pt_on_edge1 = body1->half_widths;
-        vec3 pt_on_edge2 = body2->half_widths;
-
         int one_axis_index = (best_case - 6) / 3;
-        int two_axis_index = (best_case - 6) % 3 + 3;
-        vec3 axis = axes[best_case].normalize();
+        int two_axis_index = (best_case - 6) % 3;
+
+        vec3 one_axis = axes[one_axis_index];
+        vec3 two_axis = axes[two_axis_index + 3];
+        vec3 axis = vec3::cross(one_axis, two_axis).normalize();
 
         if (vec3::dot(axis, to_center) > 0) {
             axis = -1.0 * axis;
         }
 
+        vec3 pt_on_edge1 = body1->half_widths;
+        vec3 pt_on_edge2 = body2->half_widths;
         for (int i = 0; i < 3; i++) {
             if (i == one_axis_index) {
                 pt_on_edge1[i] = 0.0;
@@ -210,60 +217,75 @@ void PhysicsEngine::check_for_collision(RigidBody *body1, RigidBody *body2) {
             }
         }
 
-        pt_on_edge1 = mat4::translation(body1->position) * pt_on_edge1;
-        pt_on_edge2 = mat4::translation(body2->position) * pt_on_edge2;
+        pt_on_edge1 = mat4::translation(body1->position) * transformation1 * pt_on_edge1;
+        pt_on_edge2 = mat4::translation(body2->position) * transformation2 * pt_on_edge2;
+
+        float sm_one = one_axis.length_squared();
+        float sm_two = two_axis.length_squared();
+        float dot_product_edges = vec3::dot(one_axis, two_axis);
 
         vec3 to_st = pt_on_edge1 - pt_on_edge2;
         float dp_sta_one = vec3::dot(axes[one_axis_index], to_st);
-        float dp_sta_two = vec3::dot(axes[two_axis_index], to_st);
+        float dp_sta_two = vec3::dot(axes[two_axis_index + 3], to_st);
 
-        float sm_one = axes[one_axis_index].length_squared();
-        float sm_two = axes[two_axis_index].length_squared();
-        float dot_product_edges = vec3::dot(axes[one_axis_index], axes[two_axis_index]);
         float denom = sm_one * sm_two - dot_product_edges * dot_product_edges;
 
         if (ABS(denom) < 0.0001f) {
             Contact contact;
             contact.body1 = body1;
             contact.body2 = body2;
-            contact.position = pt_on_edge1; 
+            contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
             contact.normal = -1.0 * axis;
+            contact.flavor = 3;
             contacts.push_back(contact);
-
             return;
         }
 
         float a = (dot_product_edges * dp_sta_two - sm_two * dp_sta_one) / denom;
         float b = (sm_one * dp_sta_two - dot_product_edges * dp_sta_one) / denom;
 
-        vec3 nearest_pt_on_one = pt_on_edge1 + a * axes[one_axis_index];
-        vec3 nearest_pt_on_two = pt_on_edge2 + b * axes[two_axis_index];
+        float body_1_half_width = body1->half_widths[one_axis_index];
+        float body_2_half_width = body2->half_widths[two_axis_index];
 
-        Contact contact;
-        contact.body1 = body1;
-        contact.body2 = body2;
-        contact.position = 0.5 * nearest_pt_on_one + 0.5 * nearest_pt_on_two;
-        contact.normal = -1.0 * axis;
-        contact.flavor = 2;
-        contacts.push_back(contact);
+        if (a > body_1_half_width || a < -body_1_half_width || b > body_2_half_width || b < -body_2_half_width) {
+            Contact contact;
+            contact.body1 = body1;
+            contact.body2 = body2;
+            contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
+            contact.normal = -1.0 * axis;
+            contact.flavor = 4;
+            contacts.push_back(contact);
+        }
+        else {
+            vec3 nearest_pt_on_one = pt_on_edge1 + a * one_axis;
+            vec3 nearest_pt_on_two = pt_on_edge2 + b * two_axis;
+
+            Contact contact;
+            contact.body1 = body1;
+            contact.body2 = body2;
+            contact.position = 0.5 * nearest_pt_on_one + 0.5 * nearest_pt_on_two;
+            contact.normal = -1.0 * axis;
+            contact.flavor = 5;
+            contacts.push_back(contact);
+        }
     }
 }
 
 void PhysicsEngine::generate_contacts() {
-    vec3 points[8] = {
-        vec3( 0.5,  0.5,  0.5),
-        vec3( 0.5,  0.5, -0.5),
-        vec3( 0.5, -0.5,  0.5),
-        vec3( 0.5, -0.5, -0.5),
-        vec3(-0.5,  0.5,  0.5),
-        vec3(-0.5,  0.5, -0.5),
-        vec3(-0.5, -0.5,  0.5),
-        vec3(-0.5, -0.5, -0.5)
-    };
-
     for (int i = 0; i < rigid_bodies.size(); i++) {
         RigidBody *body1 = &rigid_bodies[i];
         mat4 transformation1 = mat4::translation(body1->position) * body1->orientation.get_matrix();
+
+        vec3 points[8] = {
+            vec3( body1->half_widths.x,   body1->half_widths.y,   body1->half_widths.z),
+            vec3( body1->half_widths.x,   body1->half_widths.y,  -body1->half_widths.z),
+            vec3( body1->half_widths.x,  -body1->half_widths.y,   body1->half_widths.z),
+            vec3( body1->half_widths.x,  -body1->half_widths.y,  -body1->half_widths.z),
+            vec3(-body1->half_widths.x,   body1->half_widths.y,   body1->half_widths.z),
+            vec3(-body1->half_widths.x,   body1->half_widths.y,  -body1->half_widths.z),
+            vec3(-body1->half_widths.x,  -body1->half_widths.y,   body1->half_widths.z),
+            vec3(-body1->half_widths.x,  -body1->half_widths.y,  -body1->half_widths.z),
+        };
 
         for (int j = 0; j < 8; j++) {
             vec3 point_world = transformation1 * points[j];
@@ -369,21 +391,6 @@ void PhysicsEngine::resolve_contacts(float e) {
             b2->velocity = b2->velocity + (j / m2) * n; 
             b2->angular_velocity = b2->angular_velocity + j * (I2.inverse() * vec3::cross(r2, n));
 
-            if (b1 == &rigid_bodies[0]) {
-                //printf("b1\n");
-                //printf("n: ");
-                //n.print();
-                //printf("w: ");
-                //b1->angular_velocity.print();
-            }
-            if (b2 == &rigid_bodies[0]) {
-                //printf("b2\n");
-                //printf("n: ");
-                //n.print();
-                //printf("w: ");
-                //b2->angular_velocity.print();
-            }
-
             vec3 t;
             if (vec3::dot(vr, n) != 0.0) {
                 t = vr - vec3::dot(vr, n) * n;
@@ -442,6 +449,17 @@ void PhysicsEngine::run_physics(float dt) {
     for (int i = 0; i < 5; i++) {
         integrate_positions(dt);
         generate_contacts();
+
+        for (int i = 0; i < contacts.size(); i++) {
+            if (contacts[i].body2) {
+                //printf("f: %d\n", contacts[i].flavor);
+                //printf("n: ");
+                //contacts[i].normal.print();
+                //printf("cp: ");
+                //contacts[i].position.print();
+            }
+        }
+
         resolve_contacts(0.3);
         restore_positions();
     }

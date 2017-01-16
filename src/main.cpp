@@ -40,7 +40,7 @@ GLFWwindow *init_opengl(int width, int height, const char *title) {
 };
 
 int main() {
-    GLFWwindow *window = init_opengl(700, 700, "hi");
+    GLFWwindow *window = init_opengl(1000, 1000, "hi");
     Controls controls(window);
     int window_width, window_height;
 
@@ -48,7 +48,7 @@ int main() {
     Renderer renderer;
     PhysicsEngine physics_engine;
 
-    scene.camera.eye = vec3(0.0, 1.0, 10.0);
+    scene.camera.eye = vec3(0.0, 10.0, 10.0);
     scene.camera.target = vec3(0.0, 0.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
@@ -91,9 +91,10 @@ int main() {
                 0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
                 0.0, 0.0, 0.0, 1.0
                 );
-        cube_rigid_body.position = vec3(0.5, 2.0, 0.0);
+        cube_rigid_body.position = vec3(0.8, 2.0, 0.0);
         cube_rigid_body.transform_id = instance_id;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
+        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 1.0), 1.5 * M_PI);
 
         physics_engine.add_rigid_body(cube_rigid_body);
     }
@@ -110,6 +111,7 @@ int main() {
         cube_rigid_body.position = vec3(0.0, 0.5, 0.0);
         cube_rigid_body.transform_id = instance_id_3;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
+        cube_rigid_body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.0 * M_PI);
 
         physics_engine.add_rigid_body(cube_rigid_body);
     }
@@ -123,7 +125,7 @@ int main() {
                 0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
                 0.0, 0.0, 0.0, 1.0
                 );
-        cube_rigid_body.position = vec3(0.0, 3.5, 0.0);
+        cube_rigid_body.position = vec3(1.2, 3.5, 0.0);
         cube_rigid_body.transform_id = instance_id_4;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
 
@@ -142,6 +144,21 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &window_width, &window_height);
         controls.update();
+
+        if (controls.key_down[GLFW_KEY_R]) {
+            physics_engine.rigid_bodies[0].position = vec3(0.5, 2.0, 0.0);
+            physics_engine.rigid_bodies[1].position = vec3(0.0, 0.5, 0.0);
+            physics_engine.rigid_bodies[2].position = vec3(0.0, 3.5, 0.0);
+
+            for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
+                RigidBody body = physics_engine.rigid_bodies[i];
+
+                if (body.transform_id != -1) {
+                    scene.transforms[body.transform_id].translation = body.position;
+                    scene.transforms[body.transform_id].orientation = body.orientation;
+                }
+            }
+        }
 
         if (controls.key_down[GLFW_KEY_P] || controls.key_clicked[GLFW_KEY_O]) {
             physics_engine.run_physics(0.016);

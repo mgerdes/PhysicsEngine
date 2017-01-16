@@ -45,7 +45,10 @@ int main() {
     int window_width, window_height;
 
     Scene scene;
-    scene.camera.eye = vec3(0.0, 10.0, 10.0);
+    Renderer renderer;
+    PhysicsEngine physics_engine;
+
+    scene.camera.eye = vec3(0.0, 1.0, 10.0);
     scene.camera.target = vec3(0.0, 0.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
@@ -66,39 +69,90 @@ int main() {
     scene.transforms[transform_id_2].translation = vec3(0.0, -5.0, 0.0);
     scene.transforms[transform_id_2].scale = vec3(10.0, 10.0, 10.0);
 
-    Renderer renderer;
+    int instance_id_3 = scene.add_instance(mesh_ids[0]);
+    int transform_id_3 = scene.instances[instance_id_3].transform_id;
+    scene.transforms[transform_id_3].translation = vec3(0.0, 0.0, 0.0);
+    scene.transforms[transform_id_3].scale = vec3(1.0, 1.0, 1.0);
+
+    int instance_id_4 = scene.add_instance(mesh_ids[0]);
+    int transform_id_4 = scene.instances[instance_id_4].transform_id;
+    scene.transforms[transform_id_4].translation = vec3(0.0, 0.0, 0.0);
+    scene.transforms[transform_id_4].scale = vec3(1.0, 1.0, 1.0);
+
     renderer.scene = &scene;
     renderer.shader = Shader::load_from_file("shaders/default.frag", "shaders/default.vert");
 
-    RigidBody cube_rigid_body;
-    cube_rigid_body.mass = 1.0;
-    cube_rigid_body.inertia_tensor = mat4(
-            (1.0 / 12.0) * 2, 0.0,              0.0,              0.0,
-            0.0,              (1.0 / 12.0) * 2, 0.0,              0.0,
-            0.0,              0.0,              (1.0 / 12.0) * 2, 0.0,
-            0.0,              0.0,              0.0,              1.0
-            );
-    cube_rigid_body.position = vec3(0.0, 5.0, 0.0);
-    cube_rigid_body.add_force_at_point(vec3(10.0, 0.0, 9.0), vec3(0.0, 7.0, 0.0));
-    cube_rigid_body.transform_id = instance_id;
+    {
+        RigidBody cube_rigid_body;
+        cube_rigid_body.mass = 1.0;
+        cube_rigid_body.inertia_tensor = mat4(
+                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
+                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
+                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
+                0.0, 0.0, 0.0, 1.0
+                );
+        cube_rigid_body.position = vec3(0.5, 2.0, 0.0);
+        cube_rigid_body.transform_id = instance_id;
+        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
 
-    PhysicsEngine physics_engine;
-    physics_engine.add_rigid_body(cube_rigid_body);
+        physics_engine.add_rigid_body(cube_rigid_body);
+    }
+
+    {
+        RigidBody cube_rigid_body;
+        cube_rigid_body.mass = 1.0;
+        cube_rigid_body.inertia_tensor = mat4(
+                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
+                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
+                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
+                0.0, 0.0, 0.0, 1.0
+                );
+        cube_rigid_body.position = vec3(0.0, 0.5, 0.0);
+        cube_rigid_body.transform_id = instance_id_3;
+        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
+
+        physics_engine.add_rigid_body(cube_rigid_body);
+    }
+
+    {
+        RigidBody cube_rigid_body;
+        cube_rigid_body.mass = 1.0;
+        cube_rigid_body.inertia_tensor = mat4(
+                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
+                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
+                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
+                0.0, 0.0, 0.0, 1.0
+                );
+        cube_rigid_body.position = vec3(0.0, 3.5, 0.0);
+        cube_rigid_body.transform_id = instance_id_4;
+        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
+
+        physics_engine.add_rigid_body(cube_rigid_body);
+    }
+
+    for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
+        RigidBody body = physics_engine.rigid_bodies[i];
+
+        if (body.transform_id != -1) {
+            scene.transforms[body.transform_id].translation = body.position;
+            scene.transforms[body.transform_id].orientation = body.orientation;
+        }
+    }
 
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &window_width, &window_height);
         controls.update();
 
-        if (controls.key_down[GLFW_KEY_R]) {
-            physics_engine.rigid_bodies[0].position = vec3(0.0, 5.0, 0.0);
-        }
+        if (controls.key_down[GLFW_KEY_P] || controls.key_clicked[GLFW_KEY_O]) {
+            physics_engine.run_physics(0.016);
 
-        physics_engine.run_physics(0.016);
-        for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
-            RigidBody body = physics_engine.rigid_bodies[i];
-            if (body.transform_id != -1) {
-                scene.transforms[body.transform_id].translation = body.position;
-                scene.transforms[body.transform_id].orientation = body.orientation;
+            for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
+                RigidBody body = physics_engine.rigid_bodies[i];
+
+                if (body.transform_id != -1) {
+                    scene.transforms[body.transform_id].translation = body.position;
+                    scene.transforms[body.transform_id].orientation = body.orientation;
+                }
             }
         }
 

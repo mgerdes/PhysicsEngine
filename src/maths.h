@@ -9,6 +9,7 @@
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define ABS(a) ((a) >= 0 ? (a) : -(a))
 
 float rand_num(void);
 
@@ -25,10 +26,14 @@ struct vec3 {
 
     vec3 normalize() const;
     float length() const;
+    float length_squared() const;
     void print() const;
 
     static float dot(const vec3 &v1, const vec3 &v2);
     static vec3 cross(const vec3 &v1, const vec3 &v2);
+
+    float operator[](int i) const;
+    float& operator[](int i);
 };
 
 vec3 operator+(const vec3 &u, const vec3 &v);

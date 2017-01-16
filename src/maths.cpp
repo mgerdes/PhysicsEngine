@@ -69,6 +69,10 @@ float vec3::length() const {
     return sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
 }
 
+float vec3::length_squared() const {
+    return this->x * this->x + this->y * this->y + this->z * this->z;
+}
+
 /*
  * 4-D vectors
  */
@@ -390,6 +394,25 @@ vec3 operator*(const mat4 &m, const vec3 &v) {
     return vec3(x, y, z);
 }
 
+float vec3::operator[](int i) const {
+    if (i == 0) {
+        return x;
+    }
+    else if (i == 1) {
+        return y;
+    }
+    return z;
+}
+
+float& vec3::operator[](int i) {
+    if (i == 0) {
+        return x;
+    }
+    else if (i == 1) {
+        return y;
+    }
+    return z;
+}
 
 quat::quat() {
     this->x = 0;

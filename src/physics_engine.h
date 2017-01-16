@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <float.h>
 
 #include "maths.h"
 
@@ -25,6 +26,8 @@ class RigidBody {
         vec3 force_accumulator;
         vec3 torque_accumulator;
 
+        vec3 half_widths;
+
         RigidBody();
 
         void integrate_position(float dt); 
@@ -44,6 +47,8 @@ class Contact {
         vec3 position;
         vec3 normal;
 
+        int flavor;
+
         float penetration;
 };
 
@@ -59,4 +64,7 @@ class PhysicsEngine {
         void integrate_velocities(float dt);
         void restore_positions();
         void run_physics(float dt);
+        float penetration_on_axis(RigidBody *body1, RigidBody *body2, vec3 axis, vec3 to_center);
+        float transform_to_axis(RigidBody *body, vec3 axis);
+        void check_for_collision(RigidBody *body1, RigidBody *body2);
 };

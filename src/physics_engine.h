@@ -28,6 +28,9 @@ class RigidBody {
 
         vec3 half_widths;
 
+        int level;
+        bool asleep;
+
         RigidBody();
 
         void integrate_position(float dt); 

@@ -91,43 +91,44 @@ int main() {
                 0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
                 0.0, 0.0, 0.0, 1.0
                 );
-        cube_rigid_body.position = vec3(0.8, 2.0, 0.0);
+        cube_rigid_body.position = vec3(0.0, 4.0, 0.0);
         cube_rigid_body.transform_id = instance_id;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
-        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 1.0), 1.5 * M_PI);
+        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 1.0), 0.25 * M_PI);
 
         physics_engine.add_rigid_body(cube_rigid_body);
     }
 
     {
         RigidBody cube_rigid_body;
-        cube_rigid_body.mass = 1.0;
+        cube_rigid_body.mass = 10.0;
         cube_rigid_body.inertia_tensor = mat4(
                 (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
                 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
                 0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
                 0.0, 0.0, 0.0, 1.0
                 );
-        cube_rigid_body.position = vec3(0.0, 0.5, 0.0);
+        cube_rigid_body.position = vec3(-0.7, 1.0, 0.0);
         cube_rigid_body.transform_id = instance_id_3;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
-        cube_rigid_body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.0 * M_PI);
+        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 0.0), 0.0 * M_PI);
 
         physics_engine.add_rigid_body(cube_rigid_body);
     }
 
     {
         RigidBody cube_rigid_body;
-        cube_rigid_body.mass = 1.0;
+        cube_rigid_body.mass = 10.0;
         cube_rigid_body.inertia_tensor = mat4(
                 (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
                 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
                 0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
                 0.0, 0.0, 0.0, 1.0
                 );
-        cube_rigid_body.position = vec3(1.2, 3.5, 0.0);
+        cube_rigid_body.position = vec3(0.7, 1.0, 0.0);
         cube_rigid_body.transform_id = instance_id_4;
         cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
+        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 0.0), 0.0 * M_PI);
 
         physics_engine.add_rigid_body(cube_rigid_body);
     }

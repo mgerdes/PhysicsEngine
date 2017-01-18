@@ -336,8 +336,10 @@ void PhysicsEngine::resolve_contacts(float e) {
             float temp1 = (1.0 / m1) + vec3::dot(I1.inverse() * vec3::cross(vec3::cross(r1, n), r1), n);
             float j = MAX(-(1.0 + e) * vec3::dot(vr, n) / (temp1), 0.0);
 
-            b1->velocity = b1->velocity - (j / m1) * n; 
-            b1->angular_velocity = b1->angular_velocity - j * (I1.inverse() * vec3::cross(r1, n));
+            if (!b1->asleep) {
+                b1->velocity = b1->velocity - (j / m1) * n; 
+                b1->angular_velocity = b1->angular_velocity - j * (I1.inverse() * vec3::cross(r1, n));
+            }
 
             vec3 t;
             if (vec3::dot(vr, n) != 0.0) {
@@ -356,8 +358,10 @@ void PhysicsEngine::resolve_contacts(float e) {
             if (jf1 >= us * j) {
                 jf1 = -ud * j;
             }
-            b1->velocity = b1->velocity - (jf1 / m1) * t; 
-            b1->angular_velocity = b1->angular_velocity - jf1 * (I1.inverse() * vec3::cross(r1, t));
+            if (!b1->asleep) {
+                b1->velocity = b1->velocity - (jf1 / m1) * t; 
+                b1->angular_velocity = b1->angular_velocity - jf1 * (I1.inverse() * vec3::cross(r1, t));
+            }
         }
         else {
             float m1 = b1->mass;
@@ -385,11 +389,15 @@ void PhysicsEngine::resolve_contacts(float e) {
             float temp2 = (1.0 / m2) + vec3::dot(I2.inverse() * vec3::cross(vec3::cross(r2, n), r2), n);
             float j = MAX(-(1.0 + e) * vec3::dot(vr, n) / (temp1 + temp2), 0.0);
 
-            b1->velocity = b1->velocity - (j / m1) * n; 
-            b1->angular_velocity = b1->angular_velocity - j * (I1.inverse() * vec3::cross(r1, n));
+            if (!b1->asleep) {
+                b1->velocity = b1->velocity - (j / m1) * n; 
+                b1->angular_velocity = b1->angular_velocity - j * (I1.inverse() * vec3::cross(r1, n));
+            }
 
-            b2->velocity = b2->velocity + (j / m2) * n; 
-            b2->angular_velocity = b2->angular_velocity + j * (I2.inverse() * vec3::cross(r2, n));
+            if (!b2->asleep) {
+                b2->velocity = b2->velocity + (j / m2) * n; 
+                b2->angular_velocity = b2->angular_velocity + j * (I2.inverse() * vec3::cross(r2, n));
+            }
 
             vec3 t;
             if (vec3::dot(vr, n) != 0.0) {
@@ -408,15 +416,19 @@ void PhysicsEngine::resolve_contacts(float e) {
             if (jf1 >= us * j) {
                 jf1 = -ud * j;
             }
-            b1->velocity = b1->velocity - (jf1 / m1) * t; 
-            b1->angular_velocity = b1->angular_velocity - jf1 * (I1.inverse() * vec3::cross(r1, t));
+            if (!b1->asleep) {
+                b1->velocity = b1->velocity - (jf1 / m1) * t; 
+                b1->angular_velocity = b1->angular_velocity - jf1 * (I1.inverse() * vec3::cross(r1, t));
+            }
 
             float jf2 = m2 * vec3::dot(vr, t);
             if (jf2 >= us * j) {
                 jf2 = -ud * j;
             }
-            b2->velocity = b2->velocity + (jf2 / m2) * t; 
-            b2->angular_velocity = b2->angular_velocity + jf2 * (I2.inverse() * vec3::cross(r2, t));
+            if (!b2->asleep) {
+                b2->velocity = b2->velocity + (jf2 / m2) * t; 
+                b2->angular_velocity = b2->angular_velocity + jf2 * (I2.inverse() * vec3::cross(r2, t));
+            }
         }
     }
 
@@ -443,10 +455,15 @@ void PhysicsEngine::restore_positions() {
 
 void PhysicsEngine::run_physics(float dt) {
     for (int i = 0; i < rigid_bodies.size(); i++) {
+        rigid_bodies[i].level = -1;
+        rigid_bodies[i].asleep = false;
+    }
+
+    for (int i = 0; i < rigid_bodies.size(); i++) {
         rigid_bodies[i].add_force_at_point(vec3(0.0, -9.8 * rigid_bodies[i].mass, 0.0), rigid_bodies[i].position);
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         integrate_positions(dt);
         generate_contacts();
 
@@ -460,17 +477,65 @@ void PhysicsEngine::run_physics(float dt) {
             }
         }
 
-        resolve_contacts(0.3);
+        resolve_contacts(0.25);
         restore_positions();
     }
 
     integrate_velocities(dt);
+
+    generate_contacts();
+    int level = 0;
+    bool body_on_level = true;
+    while (body_on_level) {
+        body_on_level = false;
+
+        for (int i = 0; i < contacts.size(); i++) {
+            if (level == 0) {
+                if (!contacts[i].body2) {
+                    contacts[i].body1->level = 0; 
+                    body_on_level = true;
+                }
+            }
+            else {
+                if (!contacts[i].body2) {
+                    continue;
+                }
+
+                if ((contacts[i].body1->level == (level - 1)) && (contacts[i].body2->level == -1)) {
+                    contacts[i].body2->level = level;
+                    body_on_level = true;
+                }
+                if ((contacts[i].body2->level == (level - 1)) && (contacts[i].body1->level == -1)) {
+                    contacts[i].body1->level = level;
+                    body_on_level = true;
+                }
+            }
+        }
+
+        level++;
+    }
+    resolve_contacts(0.0);
 
     for (int i = 0; i < 10; i++) {
         integrate_positions(dt);
         generate_contacts();
         resolve_contacts(-1.0 + ((i + 1.0) / 10.0));
         restore_positions();
+    }
+
+    for (int i = 0; i < level; i++) {
+        for (int j = 0; j < 30; j++) {
+            integrate_positions(dt);
+            generate_contacts();
+            resolve_contacts(0.0);
+            restore_positions();
+        }
+
+        for (int j = 0; j < rigid_bodies.size(); j++) {
+            if (rigid_bodies[j].level == i) {
+                rigid_bodies[j].asleep = true;
+            }
+        }
     }
 
     integrate_positions(dt);

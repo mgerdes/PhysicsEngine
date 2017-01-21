@@ -43,135 +43,66 @@ int main() {
     GLFWwindow *window = init_opengl(1000, 1000, "hi");
     Controls controls(window);
     int window_width, window_height;
+    std::vector<int> cube_mesh_ids;
+    std::vector<int> plane_mesh_ids;
 
     Scene scene;
-    Renderer renderer;
-    PhysicsEngine physics_engine;
-
-    scene.camera.eye = vec3(0.0, 10.0, 10.0);
-    scene.camera.target = vec3(0.0, 0.0, 0.0);
+    scene.camera.eye = vec3(0.0, 3.0, 10.0);
+    scene.camera.target = vec3(0.0, 3.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
     scene.camera.aspect = 1.0;
     scene.camera.near = 0.1;
     scene.camera.far = 100.0;
+    scene.add_meshes_from_file("resources/cube.obj", &cube_mesh_ids);
+    scene.add_meshes_from_file("resources/plane.obj", &plane_mesh_ids);
 
-    std::vector<int> mesh_ids;
-    scene.add_meshes_from_file("resources/cube.obj", &mesh_ids);
-
-    int instance_id = scene.add_instance(mesh_ids[0]);
-    int transform_id = scene.instances[instance_id].transform_id;
-    scene.transforms[transform_id].translation = vec3(0.0, 0.0, 0.0);
-    scene.transforms[transform_id].scale = vec3(1.0, 1.0, 1.0);
-
-    int instance_id_2 = scene.add_instance(mesh_ids[0]);
-    int transform_id_2 = scene.instances[instance_id_2].transform_id;
-    scene.transforms[transform_id_2].translation = vec3(0.0, -5.0, 0.0);
-    scene.transforms[transform_id_2].scale = vec3(10.0, 10.0, 10.0);
-
-    int instance_id_3 = scene.add_instance(mesh_ids[0]);
-    int transform_id_3 = scene.instances[instance_id_3].transform_id;
-    scene.transforms[transform_id_3].translation = vec3(0.0, 0.0, 0.0);
-    scene.transforms[transform_id_3].scale = vec3(1.0, 1.0, 1.0);
-
-    int instance_id_4 = scene.add_instance(mesh_ids[0]);
-    int transform_id_4 = scene.instances[instance_id_4].transform_id;
-    scene.transforms[transform_id_4].translation = vec3(0.0, 0.0, 0.0);
-    scene.transforms[transform_id_4].scale = vec3(1.0, 1.0, 1.0);
-
+    Renderer renderer;
     renderer.scene = &scene;
     renderer.shader = Shader::load_from_file("shaders/default.frag", "shaders/default.vert");
 
-    {
-        RigidBody cube_rigid_body;
-        cube_rigid_body.mass = 1.0;
-        cube_rigid_body.inertia_tensor = mat4(
-                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
-                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
-                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
-                0.0, 0.0, 0.0, 1.0
-                );
-        cube_rigid_body.position = vec3(0.0, 4.0, 0.0);
-        cube_rigid_body.transform_id = instance_id;
-        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
-        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 1.0), 0.25 * M_PI);
+    PhysicsEngine physics_engine;
+    physics_engine.scene = &scene;
 
-        physics_engine.add_rigid_body(cube_rigid_body);
-    }
+    int plane_instance_id, plane_transform_id;
+    int cube_instance_id, cube_transform_id;
 
-    {
-        RigidBody cube_rigid_body;
-        cube_rigid_body.mass = 10.0;
-        cube_rigid_body.inertia_tensor = mat4(
-                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
-                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
-                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
-                0.0, 0.0, 0.0, 1.0
-                );
-        cube_rigid_body.position = vec3(-0.7, 1.0, 0.0);
-        cube_rigid_body.transform_id = instance_id_3;
-        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
-        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 0.0), 0.0 * M_PI);
+    plane_instance_id = scene.add_instance(plane_mesh_ids[0]);
+    plane_transform_id = scene.instances[plane_instance_id].transform_id;
+    physics_engine.add_plane_collider(plane_transform_id);
 
-        physics_engine.add_rigid_body(cube_rigid_body);
-    }
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.2, 2.5, 0.0), quat(), 1.0);
 
-    {
-        RigidBody cube_rigid_body;
-        cube_rigid_body.mass = 10.0;
-        cube_rigid_body.inertia_tensor = mat4(
-                (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0, 0.0,
-                0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0, 0.0,
-                0.0, 0.0, (1.0 / 12.0) * cube_rigid_body.mass * (1.0 + 1.0), 0.0,
-                0.0, 0.0, 0.0, 1.0
-                );
-        cube_rigid_body.position = vec3(0.7, 1.0, 0.0);
-        cube_rigid_body.transform_id = instance_id_4;
-        cube_rigid_body.half_widths = vec3(0.5, 0.5, 0.5);
-        cube_rigid_body.orientation = quat(vec3(0.0, 0.0, 0.0), 0.0 * M_PI);
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0);
 
-        physics_engine.add_rigid_body(cube_rigid_body);
-    }
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(1.2, 4.5, 0.0), quat(), 0.1);
 
-    for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
-        RigidBody body = physics_engine.rigid_bodies[i];
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.2, 3.5, 0.0), quat(), 1.0);
 
-        if (body.transform_id != -1) {
-            scene.transforms[body.transform_id].translation = body.position;
-            scene.transforms[body.transform_id].orientation = body.orientation;
-        }
-    }
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.2, 20.0, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene.instances[cube_instance_id].transform_id;
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 50.0, 0.0), quat(), 10.0);
+
+    physics_engine.update(0.0);
 
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &window_width, &window_height);
         controls.update();
 
-        if (controls.key_down[GLFW_KEY_R]) {
-            physics_engine.rigid_bodies[0].position = vec3(0.5, 2.0, 0.0);
-            physics_engine.rigid_bodies[1].position = vec3(0.0, 0.5, 0.0);
-            physics_engine.rigid_bodies[2].position = vec3(0.0, 3.5, 0.0);
-
-            for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
-                RigidBody body = physics_engine.rigid_bodies[i];
-
-                if (body.transform_id != -1) {
-                    scene.transforms[body.transform_id].translation = body.position;
-                    scene.transforms[body.transform_id].orientation = body.orientation;
-                }
-            }
-        }
-
         if (controls.key_down[GLFW_KEY_P] || controls.key_clicked[GLFW_KEY_O]) {
-            physics_engine.run_physics(0.016);
-
-            for (int i = 0; i < physics_engine.rigid_bodies.size(); i++) {
-                RigidBody body = physics_engine.rigid_bodies[i];
-
-                if (body.transform_id != -1) {
-                    scene.transforms[body.transform_id].translation = body.position;
-                    scene.transforms[body.transform_id].orientation = body.orientation;
-                }
-            }
+            physics_engine.update(0.016);
         }
 
         renderer.resize(window_width, window_height);

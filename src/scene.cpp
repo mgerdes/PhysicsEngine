@@ -1,5 +1,9 @@
 #include "scene.h"
 
+Transform::Transform() {
+    scale = vec3(1.0, 1.0, 1.0);
+}
+
 Scene::Scene() {
 
 }
@@ -43,7 +47,7 @@ void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_i
 
         Mesh mesh;
         mesh.num_vertices = shapes[i].mesh.num_face_vertices.size();
-        mesh.material_id = this->add_material(material);
+        mesh.material_id = add_material(material);
 
         glGenVertexArrays(1, &mesh.vao);
         glBindVertexArray(mesh.vao);
@@ -81,30 +85,28 @@ void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_i
             mesh.tex_coord_vbo = 0;
         }
 
-        mesh_ids->push_back(this->add_mesh(mesh));
+        mesh_ids->push_back(add_mesh(mesh));
     }
 }
 
 int Scene::add_mesh(Mesh mesh) {
-    this->meshes.push_back(mesh);
-    return this->meshes.size() - 1;
+    meshes.push_back(mesh);
+    return meshes.size() - 1;
 }
 
 int Scene::add_instance(int mesh_id) {
-    Instance instance;
     Transform transform;
+    transforms.push_back(transform);
 
-    transform.scale = vec3(1.0, 1.0, 1.0);
-    this->transforms.push_back(transform);
-
+    Instance instance;
     instance.mesh_id = mesh_id;
-    instance.transform_id = this->transforms.size() - 1;
-    this->instances.push_back(instance);
+    instance.transform_id = transforms.size() - 1;
+    instances.push_back(instance);
 
-    return this->instances.size() - 1;
+    return instances.size() - 1;
 }
 
 int Scene::add_material(Material material) {
-    this->materials.push_back(material);
-    return this->materials.size() - 1;
+    materials.push_back(material);
+    return materials.size() - 1;
 };

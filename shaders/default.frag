@@ -19,5 +19,4 @@ void main () {
     vec3 ambient_color = 0.1 * ambient;
 
     color = vec4(diffuse_color + ambient_color, 1.0);
-    //color = vec4(pow(diffuse_color + ambient_color, vec3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2)) , 1.0);
 }

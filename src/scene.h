@@ -3,20 +3,26 @@
 #include <GL/glew.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include "tiny_obj_loader.h"
 #include "maths.h"
 #include "texture.h"
 
+struct Material;
+struct Transform;
+
 struct Mesh {
     std::string name;
+
+    int num_vertices;
 
     GLuint vao;
     GLuint position_vbo;
     GLuint normal_vbo;
     GLuint tex_coord_vbo;
 
-    int num_vertices;
     int material_id;
 };
 
@@ -48,6 +54,8 @@ struct Transform {
     vec3 scale;
     vec3 translation;
     quat orientation;
+
+    Transform();
 };
 
 class Scene {

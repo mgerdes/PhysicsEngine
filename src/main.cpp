@@ -48,7 +48,7 @@ int main() {
     std::vector<int> plane_mesh_ids;
 
     Scene scene;
-    scene.camera.eye = vec3(1.0, 3.0, 10.0);
+    scene.camera.eye = vec3(8.0, 8.0, 8.0);
     scene.camera.target = vec3(0.0, 3.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
@@ -70,6 +70,7 @@ int main() {
 
     plane_instance_id = scene.add_instance(plane_mesh_ids[0]);
     scene.instances[plane_instance_id].casts_shadow = false;
+    scene.instances[plane_instance_id].draw_outline = false;
     plane_transform_id = scene.instances[plane_instance_id].transform_id;
     physics_engine.add_plane_collider(plane_transform_id);
 

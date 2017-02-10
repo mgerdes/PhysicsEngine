@@ -45,8 +45,9 @@ class TextureViewer {
 
 class Renderer {
     private:
-        void create_shadow_map();
+        void create_shadow_map(Shadow *shadow);
         Shadow shadow;
+        Shadow shadow_2;
         TextureViewer texture_viewer;
 
     public:

@@ -54,18 +54,21 @@ Shadow::Shadow(int size) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Renderer::Renderer() : shadow(2048) {
-    shadow.view_mat = mat4::look_at(vec3(0.0, 20.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+Renderer::Renderer() : shadow(2048), shadow_2(2048) {
+    shadow.view_mat = mat4::look_at(vec3(0.0, 10.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
     shadow.proj_mat = mat4::orthographic_projection(10.0, -10.0, 10.0, -10.0, 0.0, 30.0);
+
+    shadow_2.view_mat = mat4::look_at(vec3(0.0, 10.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+    shadow_2.proj_mat = mat4::orthographic_projection(50.0, -50.0, 50.0, -50.0, -100.0, 100.0);
 }
 
-void Renderer::create_shadow_map() {
-    glViewport(0, 0, shadow.size, shadow.size);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow.fb);
+void Renderer::create_shadow_map(Shadow *shadow) {
+    glViewport(0, 0, shadow->size, shadow->size);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow->fb);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, shadow.view_mat.m);
-    glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, shadow.proj_mat.m);
+    glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, shadow->view_mat.m);
+    glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, shadow->proj_mat.m);
 
     for (int i = 0; i < scene->instances.size(); i++) {
         Instance instance = scene->instances[i];
@@ -101,11 +104,10 @@ void Renderer::create_shadow_map() {
 void Renderer::paint() {
     glUseProgram(shader);
 
-    create_shadow_map();
+    create_shadow_map(&shadow);
+    create_shadow_map(&shadow_2);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-    texture_viewer.draw_texture(shadow.fb_tex);
 
     Camera *camera = &scene->camera;
     mat4 view_mat = mat4::look_at(camera->eye, camera->target, camera->up);
@@ -115,6 +117,8 @@ void Renderer::paint() {
     glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, proj_mat.m);
     glUniformMatrix4fv(SHADOW_VIEW_MAT_LOCATION, 1, GL_TRUE, shadow.view_mat.m);
     glUniformMatrix4fv(SHADOW_PROJ_MAT_LOCATION, 1, GL_TRUE, shadow.proj_mat.m);
+    glUniformMatrix4fv(SHADOW_2_VIEW_MAT_LOCATION, 1, GL_TRUE, shadow_2.view_mat.m);
+    glUniformMatrix4fv(SHADOW_2_PROJ_MAT_LOCATION, 1, GL_TRUE, shadow_2.proj_mat.m);
 
     for (int i = 0; i < scene->instances.size(); i++) {
         Instance instance = scene->instances[i];
@@ -135,6 +139,9 @@ void Renderer::paint() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, shadow.fb_tex);
 
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, shadow_2.fb_tex);
+
         glUniform3f(AMBIENT_LOCATION, material.ambient.x, material.ambient.y, material.ambient.z);
         glUniform3f(DIFFUSE_LOCATION, material.diffuse.x, material.diffuse.y, material.diffuse.z);
         glUniform3f(SPECULAR_LOCATION, material.specular.x, material.specular.y, material.specular.z);
@@ -147,7 +154,7 @@ void Renderer::paint() {
         glBindVertexArray(mesh.vao);
         glDrawArrays(GL_TRIANGLES, 0, 3 * mesh.num_vertices);
 
-        if (material.draw_outline) {
+        if (instance.draw_outline) {
             glUniform3f(DIFFUSE_LOCATION, 1.0, 1.0, 1.0);
             glUniform1f(SINGLE_COLOR_LOCATION, true);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

@@ -50,7 +50,7 @@ struct Camera {
 struct Instance {
     int mesh_id;
     int transform_id;
-    bool casts_shadow;
+    bool casts_shadow, draw_outline;
 
     Instance();
 };

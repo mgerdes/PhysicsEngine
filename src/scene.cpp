@@ -2,6 +2,7 @@
 
 Instance::Instance() {
     casts_shadow = true;
+    draw_outline = true;
 }
 
 Transform::Transform() {

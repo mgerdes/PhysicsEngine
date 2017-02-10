@@ -32,6 +32,8 @@ struct Material {
     vec3 specular;
     float shininess;
     GLuint diffuse_map;
+
+    bool draw_outline;
 };
 
 struct Camera {

@@ -17,7 +17,7 @@ GLFWwindow *init_opengl(int width, int height, const char *title) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
@@ -35,6 +35,7 @@ GLFWwindow *init_opengl(int width, int height, const char *title) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_MULTISAMPLE);  
+    glEnable(GL_LINE_SMOOTH);
 
     return window;
 };
@@ -47,7 +48,7 @@ int main() {
     std::vector<int> plane_mesh_ids;
 
     Scene scene;
-    scene.camera.eye = vec3(0.0, 3.0, 10.0);
+    scene.camera.eye = vec3(1.0, 3.0, 10.0);
     scene.camera.target = vec3(0.0, 3.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
@@ -59,7 +60,7 @@ int main() {
 
     Renderer renderer;
     renderer.scene = &scene;
-    renderer.shader = Shader::load_from_file("shaders/default.frag", "shaders/default.vert");
+    renderer.shader = Shader::load_from_file("shaders/preamble.glsl", "shaders/default.frag", "shaders/default.vert");
 
     PhysicsEngine physics_engine;
     physics_engine.scene = &scene;
@@ -73,7 +74,7 @@ int main() {
 
     cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
     cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.2, 2.5, 0.0), quat(), 1.0);
+    physics_engine.add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.3, 2.5, 0.0), quat(), 1.0);
 
     cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
     cube_transform_id = scene.instances[cube_instance_id].transform_id;
@@ -93,7 +94,7 @@ int main() {
 
     cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
     cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 50.0, 0.0), quat(), 10.0);
+    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.55, 50.0, 0.0), quat(), 10.0);
 
     physics_engine.update(0.0);
 

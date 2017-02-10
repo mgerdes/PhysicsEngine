@@ -2,10 +2,9 @@
 
 int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass) {
     BoxCollider *collider = new BoxCollider();
-
+    collider->id = colliders.size();
     collider->transform_id = transform_id;
     collider->half_lengths = half_lengths;
-
     collider->body.position = position;
     collider->body.orientation = orientation;
     collider->body.mass = mass;
@@ -16,12 +15,12 @@ int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 p
             0.0, 0.0, 0.0, 1.0
             );
     collider->body.is_static = false;
-
     colliders.push_back(collider);
 }
 
 int PhysicsEngine::add_plane_collider(int transform_id) {
     PlaneCollider *collider = new PlaneCollider();
+    collider->id = colliders.size();
     collider->transform_id = transform_id;
     collider->normal = vec3(0.0, 1.0, 0.0);
     collider->body.is_static = true;
@@ -29,15 +28,17 @@ int PhysicsEngine::add_plane_collider(int transform_id) {
 }
 
 void PhysicsEngine::generate_contacts() {
-    contacts.resize(0);
+    contact_store.empty();
 
     for (int i = 0; i < colliders.size(); i++) {
         Collider *collider1 = colliders[i];
         for (int j = i + 1; j < colliders.size(); j++) {
             Collider *collider2 = colliders[j];
-            collider1->collide(collider2, &contacts);
+            collider1->collide(collider2, &contact_store);
         }
     }
+
+    contacts = contact_store.get_all();
 }
 
 void PhysicsEngine::resolve_contacts(float e) {

@@ -1,13 +1,25 @@
 #include "collide_fine.h"
 
+void ContactStore::add(Contact contact) {
+    contacts.push_back(contact);
+}
+
+void ContactStore::empty() {
+    contacts.resize(0);
+}
+
+std::vector<Contact> ContactStore::get_all() {
+    return contacts;
+}
+
 void BoxCollider::update_transform(Transform *transform) {
     transform->scale = 2.0 * half_lengths;
     transform->translation = body.position;
     transform->orientation = body.orientation;
 }
 
-bool BoxCollider::collide(Collider *collider, std::vector<Contact> *contacts) {
-    return collider->collideWith(this, contacts);
+bool BoxCollider::collide(Collider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
 }
 
 float BoxCollider::transform_to_axis(BoxCollider *collider, vec3 axis) {
@@ -30,7 +42,7 @@ float BoxCollider::penetration_on_axis(BoxCollider *collider1, BoxCollider *coll
     return body1_projection + body2_projection - distance;
 }
 
-bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *contacts) {
+bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
     RigidBody body1 = this->body;
     RigidBody body2 = collider->body;
 
@@ -111,7 +123,9 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
         contact.collider2 = this;
         contact.position = vertex;
         contact.normal = normal;
-        contacts->push_back(contact);
+        contact.penetration = best_overlap;
+        contact.collision_case = best_case;
+        contact_store->add(contact);
         return true;
     }
     else if (best_case < 6) {
@@ -141,7 +155,8 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
         contact.collider2 = collider;
         contact.position = vertex;
         contact.normal = normal;
-        contacts->push_back(contact);
+        contact.penetration = best_overlap;
+        contact_store->add(contact);
         return true;
     }
     else {
@@ -193,7 +208,8 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
             contact.collider2 = collider;
             contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
             contact.normal = -1.0 * axis;
-            contacts->push_back(contact);
+            contact.penetration = best_overlap;
+            contact_store->add(contact);
             return true;
         }
 
@@ -209,7 +225,8 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
             contact.collider2 = collider;
             contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
             contact.normal = -1.0 * axis;
-            contacts->push_back(contact);
+            contact.penetration = best_overlap;
+            contact_store->add(contact);
             return true;
         }
         else {
@@ -221,7 +238,8 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
             contact.collider2 = collider;
             contact.position = 0.5 * nearest_pt_on_one + 0.5 * nearest_pt_on_two;
             contact.normal = -1.0 * axis;
-            contacts->push_back(contact);
+            contact.penetration = best_overlap;
+            contact_store->add(contact);
             return true;
         }
     }
@@ -229,7 +247,7 @@ bool BoxCollider::collideWith(BoxCollider *collider, std::vector<Contact> *conta
     return false;
 }
 
-bool BoxCollider::collideWith(PlaneCollider *collider, std::vector<Contact> *contacts) {
+bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
     mat4 transformation = mat4::translation(body.position) * body.orientation.get_matrix();
 
     vec3 points[8] = {
@@ -256,8 +274,9 @@ bool BoxCollider::collideWith(PlaneCollider *collider, std::vector<Contact> *con
             contact.collider2 = collider;
             contact.position = point_world;
             contact.normal = vec3(0.0, -1.0, 0.0);
+            contact.penetration = 0.0;
 
-            contacts->push_back(contact);
+            contact_store->add(contact);
         }
     }
 
@@ -266,18 +285,18 @@ bool BoxCollider::collideWith(PlaneCollider *collider, std::vector<Contact> *con
 
 void PlaneCollider::update_transform(Transform *transform) {
     transform->scale = vec3(100.0, 1.0, 100.0);
-    transform->translation = vec3(0.0, 0.0, 0.0);
+    transform->translation = vec3(0.0, -0.1, 0.0);
 }
 
-bool PlaneCollider::collide(Collider *collider, std::vector<Contact> *contacts) {
-    return collider->collideWith(this, contacts);
+bool PlaneCollider::collide(Collider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
 }
 
-bool PlaneCollider::collideWith(BoxCollider *collider, std::vector<Contact> *contacts) {
-    return collider->collideWith(this, contacts);
+bool PlaneCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
 }
 
-bool PlaneCollider::collideWith(PlaneCollider *collider, std::vector<Contact> *contacts) {
+bool PlaneCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
     return false;
 }
 

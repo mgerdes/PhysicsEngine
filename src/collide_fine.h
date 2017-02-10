@@ -9,16 +9,27 @@ class Contact;
 class BoxCollider;
 class PlaneCollider;
 
+class ContactStore {
+    private:
+        std::vector<Contact> contacts;
+
+    public:
+        void add(Contact contact);
+        void empty();
+        std::vector<Contact> get_all();
+};
+
 class Collider {
     public:
+        int id;
         int transform_id;
         int level;
         RigidBody body;
 
         virtual void update_transform(Transform *transform) = 0;
-        virtual bool collide(Collider *collider, std::vector<Contact> *contacts) = 0;
-        virtual bool collideWith(BoxCollider *collider, std::vector<Contact> *contacts) = 0;   
-        virtual bool collideWith(PlaneCollider *collider, std::vector<Contact> *contacts) = 0;   
+        virtual bool collide(Collider *collider, ContactStore *contact_store) = 0;
+        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store) = 0;   
+        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store) = 0;   
 };
 
 class BoxCollider : public Collider {
@@ -30,9 +41,9 @@ class BoxCollider : public Collider {
         vec3 half_lengths;
 
         virtual void update_transform(Transform *transform);
-        virtual bool collide(Collider *collider, std::vector<Contact> *contacts);
-        virtual bool collideWith(BoxCollider *collider, std::vector<Contact> *contacts);   
-        virtual bool collideWith(PlaneCollider *collider, std::vector<Contact> *contacts);   
+        virtual bool collide(Collider *collider, ContactStore *contact_store);
+        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
+        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
 };
 
 class PlaneCollider : public Collider {
@@ -40,9 +51,9 @@ class PlaneCollider : public Collider {
         vec3 normal;
 
         virtual void update_transform(Transform *transform);
-        virtual bool collide(Collider *collider, std::vector<Contact> *contacts);
-        virtual bool collideWith(BoxCollider *collider, std::vector<Contact> *contacts);   
-        virtual bool collideWith(PlaneCollider *collider, std::vector<Contact> *contacts);   
+        virtual bool collide(Collider *collider, ContactStore *contact_store);
+        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
+        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
 };
 
 class Contact {
@@ -56,5 +67,13 @@ class Contact {
         int flavor;
         float penetration;
 
+        int collision_case;
+
         void apply_impulses(float e);
+};
+
+class ContactManifold {
+    public:
+        int num_contacts;
+        Contact contacts[4];
 };

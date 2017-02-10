@@ -44,6 +44,7 @@ void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_i
         material.specular = vec3(materials[material_id].specular);
         material.shininess = materials[material_id].shininess;
         material.diffuse_map = Texture::load_from_file(materials[material_id].diffuse_texname.c_str());
+        material.draw_outline = true;
 
         Mesh mesh;
         mesh.num_vertices = shapes[i].mesh.num_face_vertices.size();

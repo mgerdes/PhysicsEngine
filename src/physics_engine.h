@@ -8,8 +8,9 @@
 
 class PhysicsEngine {
     private:
-        std::vector<Collider*> colliders;
+        ContactStore contact_store;
         std::vector<Contact> contacts;
+        std::vector<Collider*> colliders;
 
         void generate_contacts();
         void resolve_contacts(float e);
@@ -19,6 +20,7 @@ class PhysicsEngine {
     public:
         Scene *scene;
 
+        void init_contact_manifolds();
         int add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass);
         int add_plane_collider(int transform_id);
 

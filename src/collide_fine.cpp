@@ -285,7 +285,7 @@ bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_st
 
 void PlaneCollider::update_transform(Transform *transform) {
     transform->scale = vec3(100.0, 1.0, 100.0);
-    transform->translation = vec3(0.0, -0.1, 0.0);
+    transform->translation = vec3(0.0, -0.01, 0.0);
 }
 
 bool PlaneCollider::collide(Collider *collider, ContactStore *contact_store) {

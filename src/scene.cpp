@@ -1,5 +1,9 @@
 #include "scene.h"
 
+Instance::Instance() {
+    casts_shadow = true;
+}
+
 Transform::Transform() {
     scale = vec3(1.0, 1.0, 1.0);
 }

@@ -6,10 +6,13 @@ layout(location = MODEL_MAT_LOCATION) uniform mat4 model_mat;
 layout(location = VIEW_MAT_LOCATION) uniform mat4 view_mat;
 layout(location = PROJ_MAT_LOCATION) uniform mat4 proj_mat;
 layout(location = FOR_UI_LOCATION) uniform bool for_ui;
+layout(location = SHADOW_VIEW_MAT_LOCATION) uniform mat4 shadow_view_mat;
+layout(location = SHADOW_PROJ_MAT_LOCATION) uniform mat4 shadow_proj_mat;
 
 out vec3 frag_position;
 out vec3 frag_normal;
 out vec2 frag_tex_coord;
+out vec4 position_from_light;
 
 void main () {
     if (for_ui) {
@@ -23,5 +26,10 @@ void main () {
         frag_position = (model_mat * vec4(vertex_position, 1.0)).xyz;
         frag_normal = (inverse(transpose(model_mat)) * vec4(vertex_normal, 1.0)).xyz;
         frag_tex_coord = vertex_tex_coord;
+
+        position_from_light = shadow_proj_mat * shadow_view_mat * vec4(frag_position, 1.0);
+        position_from_light /= position_from_light.w;
+        position_from_light += 1.0;
+        position_from_light *= 0.5;
     }
 }

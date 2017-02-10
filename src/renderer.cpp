@@ -54,21 +54,26 @@ Shadow::Shadow(int size) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Renderer::Renderer() : shadow(1024) {
-    shadow.view_mat = mat4::look_at(vec3(0.0, 10.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-    shadow.proj_mat = mat4::orthographic_projection(20.0, -20.0, 20.0, -20.0, 0.0, 10.0);
+Renderer::Renderer() : shadow(2048) {
+    shadow.view_mat = mat4::look_at(vec3(0.0, 20.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+    shadow.proj_mat = mat4::orthographic_projection(10.0, -10.0, 10.0, -10.0, 0.0, 30.0);
 }
 
 void Renderer::create_shadow_map() {
     glViewport(0, 0, shadow.size, shadow.size);
     glBindFramebuffer(GL_FRAMEBUFFER, shadow.fb);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, shadow.view_mat.m);
     glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, shadow.proj_mat.m);
 
     for (int i = 0; i < scene->instances.size(); i++) {
         Instance instance = scene->instances[i];
+
+        if (!instance.casts_shadow) {
+            continue;
+        }
+
         Mesh mesh = scene->meshes[instance.mesh_id];
         Transform transform = scene->transforms[instance.transform_id];
         Material material = scene->materials[mesh.material_id];
@@ -98,7 +103,7 @@ void Renderer::paint() {
 
     create_shadow_map();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     texture_viewer.draw_texture(shadow.fb_tex);
 
@@ -108,6 +113,8 @@ void Renderer::paint() {
 
     glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, view_mat.m);
     glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, proj_mat.m);
+    glUniformMatrix4fv(SHADOW_VIEW_MAT_LOCATION, 1, GL_TRUE, shadow.view_mat.m);
+    glUniformMatrix4fv(SHADOW_PROJ_MAT_LOCATION, 1, GL_TRUE, shadow.proj_mat.m);
 
     for (int i = 0; i < scene->instances.size(); i++) {
         Instance instance = scene->instances[i];
@@ -125,6 +132,9 @@ void Renderer::paint() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, material.diffuse_map);
 
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, shadow.fb_tex);
+
         glUniform3f(AMBIENT_LOCATION, material.ambient.x, material.ambient.y, material.ambient.z);
         glUniform3f(DIFFUSE_LOCATION, material.diffuse.x, material.diffuse.y, material.diffuse.z);
         glUniform3f(SPECULAR_LOCATION, material.specular.x, material.specular.y, material.specular.z);
@@ -135,8 +145,8 @@ void Renderer::paint() {
         glUniform1f(ONLY_TEXTURE_LOCATION, false);
 
         glBindVertexArray(mesh.vao);
-
         glDrawArrays(GL_TRIANGLES, 0, 3 * mesh.num_vertices);
+
         if (material.draw_outline) {
             glUniform3f(DIFFUSE_LOCATION, 1.0, 1.0, 1.0);
             glUniform1f(SINGLE_COLOR_LOCATION, true);

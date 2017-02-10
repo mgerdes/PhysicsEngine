@@ -69,6 +69,7 @@ int main() {
     int cube_instance_id, cube_transform_id;
 
     plane_instance_id = scene.add_instance(plane_mesh_ids[0]);
+    scene.instances[plane_instance_id].casts_shadow = false;
     plane_transform_id = scene.instances[plane_instance_id].transform_id;
     physics_engine.add_plane_collider(plane_transform_id);
 

@@ -10,7 +10,6 @@ Transform::Transform() {
 }
 
 Scene::Scene() {
-
 }
 
 void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_ids) {

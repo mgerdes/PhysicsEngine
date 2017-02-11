@@ -16,6 +16,7 @@ int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 p
             );
     collider->body.is_static = false;
     colliders.push_back(collider);
+    return colliders.size() - 1;
 }
 
 int PhysicsEngine::add_plane_collider(int transform_id) {
@@ -25,6 +26,7 @@ int PhysicsEngine::add_plane_collider(int transform_id) {
     collider->normal = vec3(0.0, 1.0, 0.0);
     collider->body.is_static = true;
     colliders.push_back(collider);
+    return colliders.size() - 1;
 }
 
 void PhysicsEngine::generate_contacts() {

@@ -10,6 +10,9 @@
 #include "physics_engine.h"
 #include "controls.h"
 
+static std::vector<int> cube_mesh_ids;
+static std::vector<int> plane_mesh_ids;
+
 GLFWwindow *init_opengl(int width, int height, const char *title) {
     if (!glfwInit()) {
         // TODO: Log error
@@ -38,17 +41,108 @@ GLFWwindow *init_opengl(int width, int height, const char *title) {
     glEnable(GL_LINE_SMOOTH);
 
     return window;
-};
+}
+
+void init_catapult_scene(PhysicsEngine *physics_engine) {
+    int plane_instance_id, plane_transform_id;
+    int cube_instance_id, cube_transform_id;
+    Scene *scene = physics_engine->scene;
+
+    plane_instance_id = scene->add_instance(plane_mesh_ids[0]);
+    scene->instances[plane_instance_id].casts_shadow = false;
+    scene->instances[plane_instance_id].draw_outline = false;
+    plane_transform_id = scene->instances[plane_instance_id].transform_id;
+    physics_engine->add_plane_collider(plane_transform_id);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.3, 2.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(1.2, 4.5, 0.0), quat(), 0.1);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.2, 3.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.2, 20.0, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.55, 50.0, 0.0), quat(), 10.0);
+
+    physics_engine->update(0.0);
+}
+
+void init_wall_scene(PhysicsEngine *physics_engine) {
+    int plane_instance_id, plane_transform_id;
+    int cube_instance_id, cube_transform_id;
+    int collider_id;
+    Scene *scene = physics_engine->scene;
+
+    plane_instance_id = scene->add_instance(plane_mesh_ids[0]);
+    scene->instances[plane_instance_id].casts_shadow = false;
+    scene->instances[plane_instance_id].draw_outline = false;
+    plane_transform_id = scene->instances[plane_instance_id].transform_id;
+    physics_engine->add_plane_collider(plane_transform_id);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 0.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.0, 0.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 1.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 1.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.0, 1.5, 0.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(2.0, 2.0, 0.1), vec3(0.0, 5.0, -5.0), quat(), 1.0);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(0.0, 6.5, -4.6), quat(), 0.12);
+
+    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    collider_id = physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 1.4, 5.0), quat(), 1.0);
+
+    Collider *collider = physics_engine->colliders[collider_id];
+    RigidBody *body = &collider->body;
+    body->add_force_at_point(vec3(0.0, 0.0, -2150.0), body->position);
+
+    physics_engine->update(0.016);
+}
 
 int main() {
     GLFWwindow *window = init_opengl(1000, 1000, "hi");
     Controls controls(window);
     int window_width, window_height;
-    std::vector<int> cube_mesh_ids;
-    std::vector<int> plane_mesh_ids;
 
     Scene scene;
-    scene.camera.eye = vec3(8.0, 8.0, 8.0);
+    scene.camera.eye = vec3(8.0, 8.0, 0.0);
     scene.camera.target = vec3(0.0, 3.0, 0.0);
     scene.camera.up = vec3(0.0, 1.0, 0.0);
     scene.camera.fov = 67.0;
@@ -65,40 +159,8 @@ int main() {
     PhysicsEngine physics_engine;
     physics_engine.scene = &scene;
 
-    int plane_instance_id, plane_transform_id;
-    int cube_instance_id, cube_transform_id;
-
-    plane_instance_id = scene.add_instance(plane_mesh_ids[0]);
-    scene.instances[plane_instance_id].casts_shadow = false;
-    scene.instances[plane_instance_id].draw_outline = false;
-    plane_transform_id = scene.instances[plane_instance_id].transform_id;
-    physics_engine.add_plane_collider(plane_transform_id);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.3, 2.5, 0.0), quat(), 1.0);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(1.2, 4.5, 0.0), quat(), 0.1);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.2, 3.5, 0.0), quat(), 1.0);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.2, 20.0, 0.0), quat(), 1.0);
-
-    cube_instance_id = scene.add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene.instances[cube_instance_id].transform_id;
-    physics_engine.add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.55, 50.0, 0.0), quat(), 10.0);
-
-    physics_engine.update(0.0);
+    //init_catapult_scene(&physics_engine);
+    init_wall_scene(&physics_engine);
 
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &window_width, &window_height);

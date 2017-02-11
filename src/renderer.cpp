@@ -59,7 +59,7 @@ Renderer::Renderer() : shadow(2048), shadow_2(2048) {
     shadow.proj_mat = mat4::orthographic_projection(10.0, -10.0, 10.0, -10.0, 0.0, 30.0);
 
     shadow_2.view_mat = mat4::look_at(vec3(0.0, 10.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-    shadow_2.proj_mat = mat4::orthographic_projection(50.0, -50.0, 50.0, -50.0, -100.0, 100.0);
+    shadow_2.proj_mat = mat4::orthographic_projection(50.0, -50.0, 50.0, -50.0, -65.0, 65.0);
 }
 
 void Renderer::create_shadow_map(Shadow *shadow) {

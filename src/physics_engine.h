@@ -10,7 +10,6 @@ class PhysicsEngine {
     private:
         ContactStore contact_store;
         std::vector<Contact> contacts;
-        std::vector<Collider*> colliders;
 
         void generate_contacts();
         void resolve_contacts(float e);
@@ -18,6 +17,7 @@ class PhysicsEngine {
         void integrate_velocities(float dt);
         void restore_positions();
     public:
+        std::vector<Collider*> colliders;
         Scene *scene;
 
         void init_contact_manifolds();

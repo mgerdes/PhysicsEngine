@@ -2,6 +2,11 @@
 
 Controls::Controls(GLFWwindow *window) {
     this->window = window;
+
+    for (int i = 0; i <= GLFW_KEY_LAST; i++) {
+        key_down[i] = false;
+        key_clicked[i] = false;
+    }
 }
 
 void Controls::update() {

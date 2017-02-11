@@ -1,6 +1,6 @@
 #include "physics_engine.h"
 
-int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass) {
+int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass, float restitution, float us, float ud, bool is_static) {
     BoxCollider *collider = new BoxCollider();
     collider->id = colliders.size();
     collider->transform_id = transform_id;
@@ -14,7 +14,10 @@ int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 p
             0.0, 0.0, (1.0 / 12.0) * mass * (half_lengths.z + half_lengths.x), 0.0,
             0.0, 0.0, 0.0, 1.0
             );
-    collider->body.is_static = false;
+    collider->restitution = restitution;
+    collider->us = us;
+    collider->ud = ud;
+    collider->body.is_static = is_static;
     colliders.push_back(collider);
     return colliders.size() - 1;
 }
@@ -25,6 +28,7 @@ int PhysicsEngine::add_plane_collider(int transform_id) {
     collider->transform_id = transform_id;
     collider->normal = vec3(0.0, 1.0, 0.0);
     collider->body.is_static = true;
+    collider->restitution = 0.2;
     colliders.push_back(collider);
     return colliders.size() - 1;
 }
@@ -43,7 +47,7 @@ void PhysicsEngine::generate_contacts() {
     contacts = contact_store.get_all();
 }
 
-void PhysicsEngine::resolve_contacts(float e) {
+void PhysicsEngine::resolve_contacts(bool override_resitution, float e) {
     for (int i = 0; i < contacts.size(); i++) {
         int j = rand_num() * contacts.size();
         Contact temp = contacts[i]; 
@@ -52,7 +56,12 @@ void PhysicsEngine::resolve_contacts(float e) {
     }
 
     for (Contact &contact : contacts) {
-        contact.apply_impulses(e);
+        if (override_resitution) {
+            contact.apply_impulses(e);
+        }
+        else {
+            contact.apply_impulses();
+        }
     }
 
     contacts.resize(0);
@@ -95,7 +104,7 @@ void PhysicsEngine::update(float dt) {
     for (int i = 0; i < 5; i++) {
         integrate_positions(dt);
         generate_contacts();
-        resolve_contacts(0.20);
+        resolve_contacts(false, 0.0);
         restore_positions();
     }
 
@@ -122,13 +131,13 @@ void PhysicsEngine::update(float dt) {
 
         level++;
     }
-    resolve_contacts(0.0);
+    resolve_contacts(true, 0.0);
 
     // Resolve the contacts.
     for (int i = 0; i < 10; i++) {
         integrate_positions(dt);
         generate_contacts();
-        resolve_contacts(-1.0 + ((i + 1.0) / 10.0));
+        resolve_contacts(true, -1.0 + ((i + 1.0) / 10.0));
         restore_positions();
     }
 
@@ -137,7 +146,7 @@ void PhysicsEngine::update(float dt) {
         for (int j = 0; j < 100; j++) {
             integrate_positions(dt);
             generate_contacts();
-            resolve_contacts(0.0);
+            resolve_contacts(true, 0.0);
             restore_positions();
         }
 

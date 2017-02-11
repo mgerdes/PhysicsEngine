@@ -43,6 +43,10 @@ void RigidBody::integrate_velocity(float dt) {
 }
 
 void RigidBody::restore_position() {
+    if (is_static || is_frozen) {
+        return;
+    }
+
     position = prev_position;
     orientation = prev_orientation;
 }

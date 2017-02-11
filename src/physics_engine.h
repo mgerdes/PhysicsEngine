@@ -12,7 +12,7 @@ class PhysicsEngine {
         std::vector<Contact> contacts;
 
         void generate_contacts();
-        void resolve_contacts(float e);
+        void resolve_contacts(bool override_resitution, float e);
         void integrate_positions(float dt);
         void integrate_velocities(float dt);
         void restore_positions();
@@ -21,7 +21,7 @@ class PhysicsEngine {
         Scene *scene;
 
         void init_contact_manifolds();
-        int add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass);
+        int add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass, float restitution, float us, float ud, bool is_static);
         int add_plane_collider(int transform_id);
 
         void update(float dt);

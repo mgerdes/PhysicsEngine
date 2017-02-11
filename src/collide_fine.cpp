@@ -300,6 +300,10 @@ bool PlaneCollider::collide_with(PlaneCollider *collider, ContactStore *contact_
     return false;
 }
 
+void Contact::apply_impulses() {
+    this->apply_impulses(MIN(collider1->restitution, collider2->restitution));
+}
+
 void Contact::apply_impulses(float e) {
     RigidBody *b1 = &collider1->body;
     RigidBody *b2 = &collider2->body;
@@ -379,8 +383,8 @@ void Contact::apply_impulses(float e) {
     }
     t2 = t2.normalize();
 
-    float us = 0.4;
-    float ud = 0.3;
+    float us = MAX(collider1->us, collider2->us);
+    float ud = MAX(collider1->ud, collider2->ud);
 
     float jf1 = b1->mass * vec3::dot(vr, t1);
     if (jf1 >= us * j) {

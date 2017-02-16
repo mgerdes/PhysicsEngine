@@ -12,6 +12,7 @@
 
 static std::vector<int> cube_mesh_ids;
 static std::vector<int> plane_mesh_ids;
+static std::vector<int> sphere_mesh_ids;
 Collider *controlled_cube;
 
 GLFWwindow *init_opengl(int width, int height, const char *title) {
@@ -165,9 +166,15 @@ void init_jump_scene(PhysicsEngine *physics_engine) {
     cube_transform_id = scene->instances[cube_instance_id].transform_id;
     physics_engine->add_cube_collider(cube_transform_id, vec3(1.0, 2.8, 1.0), vec3(5.0, 2.8, -2.0), quat(vec3(0.0, 1.0, 0.0), 0.83), 1.0, 0.2, 0.4, 0.3, true);
 
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    collider_id = physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(-7.0, 0.2, 0.0), quat(), 1.0, 0.0, 0.8, 0.7, false);
+    int sphere_instance_id = scene->add_instance(sphere_mesh_ids[0]);
+    scene->instances[sphere_instance_id].casts_shadow = true;
+    scene->instances[sphere_instance_id].draw_outline = false;
+    int sphere_transform_id = scene->instances[sphere_instance_id].transform_id;
+    collider_id = physics_engine->add_sphere_collider(sphere_transform_id, vec3(-7.0, 5.0, 0.0), 0.2, 1.0, 0.5, 0.2, 0.1, false);
+
+    //cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
+    //cube_transform_id = scene->instances[cube_instance_id].transform_id;
+    //collider_id = physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(-7.0, 0.2, 0.0), quat(), 1.0, 0.0, 0.8, 0.7, false);
 
     controlled_cube = physics_engine->colliders[collider_id];
 
@@ -189,6 +196,7 @@ int main() {
     scene.camera.far = 100.0;
     scene.add_meshes_from_file("resources/cube.obj", &cube_mesh_ids);
     scene.add_meshes_from_file("resources/plane.obj", &plane_mesh_ids);
+    scene.add_meshes_from_file("resources/ball.obj", &sphere_mesh_ids);
 
     Renderer renderer;
     renderer.scene = &scene;
@@ -196,6 +204,14 @@ int main() {
 
     PhysicsEngine physics_engine;
     physics_engine.scene = &scene;
+
+    /*
+    int sphere_instance_id = scene.add_instance(sphere_mesh_ids[0]);
+    scene.instances[sphere_instance_id].casts_shadow = true;
+    scene.instances[sphere_instance_id].draw_outline = false;
+    int sphere_transform_id = scene.instances[sphere_instance_id].transform_id;
+    physics_engine.add_sphere_collider(sphere_transform_id, vec3(-7.0, 5.0, 0.0), 0.2, 1.0, 0.5, 0.4, 0.3, false);
+    */
 
     //init_catapult_scene(&physics_engine);
     //init_wall_scene(&physics_engine);

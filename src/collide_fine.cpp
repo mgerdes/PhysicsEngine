@@ -26,9 +26,9 @@ float BoxCollider::transform_to_axis(BoxCollider *collider, vec3 axis) {
     mat4 transformation = collider->body.orientation.get_matrix();
 
     vec3 axes[3];
-    axes[0] =  vec3(transformation.m[0], transformation.m[4], transformation.m[8]);
-    axes[1] =  vec3(transformation.m[1], transformation.m[5], transformation.m[9]);
-    axes[2] =  vec3(transformation.m[2], transformation.m[6], transformation.m[10]);
+    axes[0] = vec3(transformation.m[0], transformation.m[4], transformation.m[8]);
+    axes[1] = vec3(transformation.m[1], transformation.m[5], transformation.m[9]);
+    axes[2] = vec3(transformation.m[2], transformation.m[6], transformation.m[10]);
 
     return collider->half_lengths.x * ABS(vec3::dot(axes[0], axis))
         + collider->half_lengths.y * ABS(vec3::dot(axes[1], axis))
@@ -40,6 +40,54 @@ float BoxCollider::penetration_on_axis(BoxCollider *collider1, BoxCollider *coll
     float body2_projection = transform_to_axis(collider2, axis);
     float distance = ABS(vec3::dot(to_center, axis));
     return body1_projection + body2_projection - distance;
+}
+
+bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
+    mat4 transformation = mat4::translation(body.position) * body.orientation.get_matrix();
+
+    vec3 center = collider->body.position;
+    vec3 relative_center = transformation.inverse() * center;
+
+    if (ABS(relative_center.x) - collider->radius > half_lengths.x ||
+            ABS(relative_center.y) - collider->radius > half_lengths.y ||
+            ABS(relative_center.z) - collider->radius > half_lengths.z) {
+        return false;
+    }
+
+    vec3 closest_pt = vec3(0.0, 0.0, 0.0);
+    float dist;
+
+    dist = relative_center.x;
+    if (dist > half_lengths.x) dist = half_lengths.x;
+    if (dist < -half_lengths.x) dist = -half_lengths.x;
+    closest_pt.x = dist;
+
+    dist = relative_center.y;
+    if (dist > half_lengths.y) dist = half_lengths.y;
+    if (dist < -half_lengths.y) dist = -half_lengths.y;
+    closest_pt.y = dist;
+
+    dist = relative_center.z;
+    if (dist > half_lengths.z) dist = half_lengths.z;
+    if (dist < -half_lengths.z) dist = -half_lengths.z;
+    closest_pt.z = dist;
+
+    dist = (closest_pt - relative_center).length_squared();
+    if (dist > collider->radius * collider->radius) {
+        return false;
+    }
+
+    vec3 closest_pt_world = transformation * closest_pt;
+
+    Contact contact;
+    contact.collider1 = collider;
+    contact.collider2 = this;
+    contact.normal = (closest_pt_world - center).normalize();
+    contact.position = closest_pt_world;
+
+    contact_store->add(contact);
+
+    return true;
 }
 
 bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
@@ -292,6 +340,10 @@ bool PlaneCollider::collide(Collider *collider, ContactStore *contact_store) {
     return collider->collide_with(this, contact_store);
 }
 
+bool PlaneCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
+}
+
 bool PlaneCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
     return collider->collide_with(this, contact_store);
 }
@@ -300,8 +352,40 @@ bool PlaneCollider::collide_with(PlaneCollider *collider, ContactStore *contact_
     return false;
 }
 
+void SphereCollider::update_transform(Transform *transform) {
+    transform->scale = vec3(radius, radius, radius);
+    transform->translation = body.position;
+    transform->orientation = body.orientation;
+}
+
+bool SphereCollider::collide(Collider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
+}
+
+bool SphereCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
+    return false;
+}
+
+bool SphereCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
+    return collider->collide_with(this, contact_store);
+}
+
+bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
+    if (this->body.position.y - this->radius < -0.02) {
+        Contact contact;
+        contact.collider1 = this;
+        contact.collider2 = collider;
+        contact.position = vec3(this->body.position.x, this->body.position.y - this->radius + 0.02, this->body.position.z);
+        contact.normal = vec3(0.0, -1.0, 0.0);
+        contact.penetration = 0.0;
+        contact_store->add(contact);
+        return true;
+    }
+    return false;
+}
+
 void Contact::apply_impulses() {
-    this->apply_impulses(MIN(collider1->restitution, collider2->restitution));
+    this->apply_impulses(MAX(collider1->restitution, collider2->restitution));
 }
 
 void Contact::apply_impulses(float e) {

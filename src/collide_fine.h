@@ -8,6 +8,7 @@
 class Contact;
 class BoxCollider;
 class PlaneCollider;
+class SphereCollider;
 
 class ContactStore {
     private:
@@ -30,8 +31,20 @@ class Collider {
 
         virtual void update_transform(Transform *transform) = 0;
         virtual bool collide(Collider *collider, ContactStore *contact_store) = 0;
+        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store) = 0;   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store) = 0;   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store) = 0;   
+};
+
+class SphereCollider : public Collider {
+    public: 
+        float radius;
+
+        virtual void update_transform(Transform *transform);
+        virtual bool collide(Collider *collider, ContactStore *contact_store);
+        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
+        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
+        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
 };
 
 class BoxCollider : public Collider {
@@ -44,6 +57,7 @@ class BoxCollider : public Collider {
 
         virtual void update_transform(Transform *transform);
         virtual bool collide(Collider *collider, ContactStore *contact_store);
+        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
 };
@@ -54,6 +68,7 @@ class PlaneCollider : public Collider {
 
         virtual void update_transform(Transform *transform);
         virtual bool collide(Collider *collider, ContactStore *contact_store);
+        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
 };

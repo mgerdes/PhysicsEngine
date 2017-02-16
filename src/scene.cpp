@@ -36,8 +36,10 @@ void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_i
                 normals.push_back(attrib.normals[3 * idx.normal_index + 1]);
                 normals.push_back(attrib.normals[3 * idx.normal_index + 2]);
 
-                tex_coords.push_back(attrib.texcoords[2 * idx.texcoord_index + 0]);
-                tex_coords.push_back(attrib.texcoords[2 * idx.texcoord_index + 1]);
+                if (idx.texcoord_index != -1) {
+                    tex_coords.push_back(attrib.texcoords[2 * idx.texcoord_index + 0]);
+                    tex_coords.push_back(attrib.texcoords[2 * idx.texcoord_index + 1]);
+                }
             }
             material_id = shapes[i].mesh.material_ids[j];
         }

@@ -25,6 +25,7 @@ class RigidBody {
         bool is_static;
 
         void apply_impulse(vec3 j, vec3 r);
+        void apply_dampening();
         void integrate_position(float dt); 
         void integrate_velocity(float dt); 
         void reset_forces();

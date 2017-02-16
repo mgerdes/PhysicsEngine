@@ -7,6 +7,11 @@ void RigidBody::add_force_at_point(const vec3 &force, const vec3 &point) {
     torque_accumulator = torque_accumulator + torque;
 }
 
+void RigidBody::apply_dampening() {
+    velocity = 0.99 * velocity;
+    angular_velocity = 0.99 * angular_velocity;
+}
+
 void RigidBody::reset_forces() {
     force_accumulator = vec3(0.0, 0.0, 0.0);
     torque_accumulator = vec3(0.0, 0.0, 0.0);

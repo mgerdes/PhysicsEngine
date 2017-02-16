@@ -22,6 +22,7 @@ class PhysicsEngine {
 
         void init_contact_manifolds();
         int add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass, float restitution, float us, float ud, bool is_static);
+        int add_sphere_collider(int transform_id, vec3 position, float radius, float mass, float restitution, float us, float ud, bool is_static);
         int add_plane_collider(int transform_id);
 
         void update(float dt);

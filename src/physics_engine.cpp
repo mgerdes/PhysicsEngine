@@ -33,6 +33,28 @@ int PhysicsEngine::add_plane_collider(int transform_id) {
     return colliders.size() - 1;
 }
 
+int PhysicsEngine::add_sphere_collider(int transform_id, vec3 position, float radius, float mass, float restitution, float us, float ud, bool is_static) {
+    SphereCollider *collider = new SphereCollider();
+    collider->id = colliders.size();
+    collider->transform_id = transform_id;
+    collider->radius = radius;
+    collider->body.position = position;
+    collider->body.mass = mass;
+    collider->body.inertia_tensor = mat4(
+            (2.0 / 5.0) * mass * radius * radius, 0.0, 0.0, 0.0,
+            0.0, (2.0 / 5.0) * mass * radius * radius, 0.0, 0.0,
+            0.0, 0.0, (2.0 / 5.0) * mass * radius * radius, 0.0,
+            0.0, 0.0, 0.0, 1.0
+            );
+
+    collider->restitution = restitution;
+    collider->us = us;
+    collider->ud = ud;
+    collider->body.is_static = is_static;
+    colliders.push_back(collider);
+    return colliders.size() - 1;
+}
+
 void PhysicsEngine::generate_contacts() {
     contact_store.empty();
 
@@ -168,6 +190,7 @@ void PhysicsEngine::update(float dt) {
         collider->update_transform(&(scene->transforms[collider->transform_id]));
 
         RigidBody *body = &collider->body;
+        body->apply_dampening();
         body->reset_forces();
     }
 }

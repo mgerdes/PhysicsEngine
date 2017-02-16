@@ -39,7 +39,7 @@ void main () {
             for(int x = -1; x <= 1; x++) {
                 for(int y = -1; y <= 1; y++) {
                     float pcf_depth = texture(shadow_depth_map, position_from_light.xy + vec2(x, y) * texel_size).r; 
-                    shadow += position_from_light.z - bias > pcf_depth ? 1.0 : 0.0;        
+                    shadow += position_from_light.z - bias > pcf_depth ? 0.8 : 0.0;        
                 }
             }
 
@@ -52,7 +52,7 @@ void main () {
             for(int x = -1; x <= 1; x++) {
                 for(int y = -1; y <= 1; y++) {
                     float pcf_depth = texture(shadow_2_depth_map, position_from_light_2.xy + vec2(x, y) * texel_size).r; 
-                    shadow += position_from_light_2.z - bias > pcf_depth ? 1.0 : 0.0;        
+                    shadow += position_from_light_2.z - bias > pcf_depth ? 0.8 : 0.0;        
                 }
             }
 

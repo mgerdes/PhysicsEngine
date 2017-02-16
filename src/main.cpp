@@ -196,7 +196,7 @@ int main() {
     scene.camera.far = 100.0;
     scene.add_meshes_from_file("resources/cube.obj", &cube_mesh_ids);
     scene.add_meshes_from_file("resources/plane.obj", &plane_mesh_ids);
-    scene.add_meshes_from_file("resources/ball.obj", &sphere_mesh_ids);
+    scene.add_meshes_from_file("resources/sphere.obj", &sphere_mesh_ids);
 
     Renderer renderer;
     renderer.scene = &scene;

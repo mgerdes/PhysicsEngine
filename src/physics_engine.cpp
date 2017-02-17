@@ -165,7 +165,7 @@ void PhysicsEngine::update(float dt) {
 
     // Do shock propagation using the collision graph
     for (int i = 0; i < level; i++) {
-        for (int j = 0; j < 100; j++) {
+        for (int j = 0; j < 10; j++) {
             integrate_positions(dt);
             generate_contacts();
             resolve_contacts(true, 0.0);

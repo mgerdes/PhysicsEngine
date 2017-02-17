@@ -363,7 +363,23 @@ bool SphereCollider::collide(Collider *collider, ContactStore *contact_store) {
 }
 
 bool SphereCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
-    return false;
+    vec3 v1 = this->body.position;
+    vec3 v2 = collider->body.position;
+    vec3 r = v2 - v1;
+
+    if (r.length() > collider->radius + this->radius) {
+        return false;
+    }
+
+    Contact contact;
+    contact.collider1 = this;
+    contact.collider2 = collider;
+    contact.normal = r.normalize();
+    contact.position = v1 + this->radius * contact.normal;
+
+    contact_store->add(contact);
+
+    return true;
 }
 
 bool SphereCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
@@ -476,7 +492,7 @@ void Contact::apply_impulses(float e) {
     }
     b1->apply_impulse(-1.0 * jf1 * t1, r1);
 
-    float jf2 = b2->mass * vec3::dot(vr, t2);
+    float jf2 = b2->mass * vec3::dot(1.0 * vr, t2);
     if (jf2 >= us * j) {
         jf2 = -ud * j;
     }

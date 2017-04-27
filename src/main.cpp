@@ -8,6 +8,7 @@
 #include "scene.h"
 #include "shader.h"
 #include "physics_engine.h"
+#include "physics_scene_editor.h"
 #include "controls.h"
 
 static std::vector<int> cube_mesh_ids;
@@ -234,12 +235,14 @@ int main() {
     PhysicsEngine physics_engine;
     physics_engine.scene = &scene;
 
+    PhysicsSceneEditor physics_scene_editor(&physics_engine, &controls);
+
     //init_catapult_scene(&physics_engine);
     //init_wall_scene(&physics_engine);
     //init_jump_scene(&physics_engine);
     init_ball_scene(&physics_engine);
 
-    float camera_azimuth, camera_inclination = 0.6 * M_PI;
+    float camera_azimuth = 0.0, camera_inclination = 0.6 * M_PI;
 
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &window_width, &window_height);
@@ -334,6 +337,29 @@ int main() {
 
             scene.camera.target = scene.camera.eye + camera_direction;
         }
+
+        scene.update_camera_matrices();
+
+        {
+            mat4 inv_proj_mat = scene.camera.inv_proj_mat;
+            mat4 inv_view_mat = scene.camera.inv_view_mat;
+
+            vec4 direction;
+            direction.x = -1.0 + 2 * controls.mouse_pos_x / window_width;
+            direction.y = 1.0 - (2.0 * controls.mouse_pos_y) / window_height;
+
+            direction = inv_proj_mat * direction;
+            direction.z = -1.0;
+            direction.w = 0.0;
+
+            direction = inv_view_mat * direction;
+
+            controls.mouse_ray.direction = vec3(direction.x, direction.y, direction.z);
+            controls.mouse_ray.direction.normalize();
+            controls.mouse_ray.origin = scene.camera.eye;
+        }
+
+        physics_scene_editor.update(0.016);
 
         renderer.resize(window_width, window_height);
         renderer.paint();

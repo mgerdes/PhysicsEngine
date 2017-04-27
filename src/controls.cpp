@@ -1,5 +1,13 @@
 #include "controls.h"
 
+static int mouse_scroll_x_temp;
+static int mouse_scroll_y_temp;
+
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    mouse_scroll_x_temp = xoffset;
+    mouse_scroll_y_temp = yoffset;
+}
+
 Controls::Controls(GLFWwindow *window) {
     this->window = window;
 
@@ -7,6 +15,8 @@ Controls::Controls(GLFWwindow *window) {
         key_down[i] = false;
         key_clicked[i] = false;
     }
+
+    glfwSetScrollCallback(window, scroll_callback);
 }
 
 void Controls::update() {
@@ -41,6 +51,22 @@ void Controls::update() {
     else {
         middle_mouse_clicked = middle_mouse_down;
         middle_mouse_down = false;
+    }
+
+    if (mouse_scroll_x_temp != 0.0) {
+        mouse_scroll_x = mouse_scroll_x_temp;
+        mouse_scroll_x_temp = 0.0;
+    }
+    else {
+        mouse_scroll_x = 0.0;
+    }
+
+    if (mouse_scroll_y_temp != 0.0) {
+        mouse_scroll_y = mouse_scroll_y_temp;
+        mouse_scroll_y_temp = 0.0;
+    }
+    else {
+        mouse_scroll_y = 0.0;
     }
 
     int i;

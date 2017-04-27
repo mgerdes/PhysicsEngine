@@ -77,6 +77,20 @@ float vec3::length_squared() const {
  * 4-D vectors
  */
 
+vec4::vec4() {
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    w = 0.0;
+}
+
+vec4::vec4(float x, float y, float z, float w) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->w = w;
+}
+
 void vec4::print() {
     printf("<%f, %f, %f, %f>\n", this->x, this->y, this->z, this->w);
 }
@@ -394,6 +408,14 @@ vec3 operator*(const mat4 &m, const vec3 &v) {
     return vec3(x, y, z);
 }
 
+vec4 operator*(const mat4 &m, const vec4 &v) {
+    float x = m.m[0] * v.x + m.m[1] * v.y + m.m[2] * v.z + m.m[3] * v.w;
+    float y = m.m[4] * v.x + m.m[5] * v.y + m.m[6] * v.z + m.m[7] * v.w;
+    float z = m.m[8] * v.x + m.m[9] * v.y + m.m[10] * v.z + m.m[11] * v.w;
+    float w = m.m[12] * v.x + m.m[13] * v.y + m.m[14] * v.z + m.m[15] * v.w;
+    return vec4(x, y, z, w);
+}
+
 float vec3::operator[](int i) const {
     if (i == 0) {
         return x;
@@ -470,4 +492,8 @@ quat operator*(const quat &u, const quat &v) {
     float w = v.w * u.w - v.x * u.x - v.y * u.y - v.z * u.z;
 
     return quat(x, y, z, w).normalize();
+}
+
+vec3 ray::point_at_time(float t) {
+    return origin + t * direction;
 }

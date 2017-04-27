@@ -43,6 +43,9 @@ vec3 operator*(float s , const vec3 &v);
 struct vec4 {
     float x, y, z, w;
 
+    vec4();
+    vec4(float x, float y, float z, float w);
+
     void print();
 };
 
@@ -71,7 +74,8 @@ struct mat4 {
 };
 
 mat4 operator*(const mat4 &m1, const mat4 &m2);
-vec3 operator*(const mat4 &u, const vec3 &v);
+vec3 operator*(const mat4 &m, const vec3 &v);
+vec4 operator*(const mat4 &m, const vec4 &v);
 
 struct quat {
     float x, y, z, w;
@@ -89,6 +93,8 @@ quat operator*(const quat &u, const quat &v);
 
 struct ray {
     vec3 origin, direction; 
+
+    vec3 point_at_time(float t);
 };
 
 struct sphere {

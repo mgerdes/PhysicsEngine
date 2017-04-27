@@ -57,6 +57,7 @@ class Renderer {
 
         void paint();
         void resize(int width, int height);
+        void update();
 
         Renderer(); 
 };

@@ -32,8 +32,6 @@ struct Material {
     vec3 specular;
     float shininess;
     GLuint diffuse_map;
-
-    bool draw_outline;
 };
 
 struct Camera {
@@ -45,6 +43,12 @@ struct Camera {
     float aspect;
     float near;
     float far;
+
+    mat4 proj_mat;
+    mat4 view_mat;
+
+    mat4 inv_proj_mat;
+    mat4 inv_view_mat;
 };
 
 struct Instance {
@@ -73,6 +77,7 @@ class Scene {
 
         Scene();
         void add_meshes_from_file(std::string file_name, std::vector<int> *mesh_ids);
+        void update_camera_matrices();
         int add_mesh(Mesh mesh);
         int add_material(Material material);
         int add_instance(int mesh_id);

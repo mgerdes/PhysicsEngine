@@ -2,7 +2,7 @@
 
 Instance::Instance() {
     casts_shadow = true;
-    draw_outline = true;
+    draw_outline = false;
 }
 
 Transform::Transform() {
@@ -10,6 +10,14 @@ Transform::Transform() {
 }
 
 Scene::Scene() {
+}
+
+void Scene::update_camera_matrices() {
+    camera.view_mat = mat4::look_at(camera.eye, camera.target, camera.up);
+    camera.proj_mat = mat4::perspective_projection(camera.fov, camera.aspect, camera.near, camera.far);
+
+    camera.inv_view_mat = camera.view_mat.inverse();
+    camera.inv_proj_mat = camera.proj_mat.inverse();
 }
 
 void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_ids) {
@@ -50,7 +58,6 @@ void Scene::add_meshes_from_file(std::string file_name, std::vector<int> *mesh_i
         material.specular = vec3(materials[material_id].specular);
         material.shininess = materials[material_id].shininess;
         material.diffuse_map = Texture::load_from_file(materials[material_id].diffuse_texname.c_str());
-        material.draw_outline = true;
 
         Mesh mesh;
         mesh.num_vertices = shapes[i].mesh.num_face_vertices.size();

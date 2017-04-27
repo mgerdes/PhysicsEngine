@@ -62,7 +62,16 @@ void main () {
             shadow = 0.0;
         }
 
+        vec3 light_direction1 = normalize(vec3(1.5, -1.2, 0.8));
+        vec3 light_direction2 = normalize(vec3(-1.2, 0.9, -1.5));
+        vec3 light_direction3 = normalize(vec3(0.5, -1.1, -1.8));
+        vec3 light_direction4 = normalize(vec3(-0.5, 1.2, 1.5));
+
         float kd = (1.0 - shadow) * max(0.2, dot(normalize(vec3(0.0, 10.0, 10.0) - frag_position), normalize(frag_normal)));
+        kd += 0.1 * max(dot(light_direction1, frag_normal), 0.3);
+        kd += 0.1 * max(dot(light_direction2, frag_normal), 0.3);
+        kd += 0.1 * max(dot(light_direction3, frag_normal), 0.3);
+        kd += 0.1 * max(dot(light_direction4, frag_normal), 0.3);
 
         vec3 diffuse_color = 0.9 * kd * texture(diffuse_map, frag_tex_coord).rgb;
         vec3 ambient_color = 0.1 * ambient;

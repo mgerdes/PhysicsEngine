@@ -2,6 +2,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "maths.h"
+
 class Controls {
     private:
         GLFWwindow *window;
@@ -14,6 +16,8 @@ class Controls {
         bool middle_mouse_down, middle_mouse_clicked;
 
         float mouse_pos_x, mouse_delta_x, mouse_pos_y, mouse_delta_y;
+        float mouse_scroll_x, mouse_scroll_y;
+        ray mouse_ray;
 
         bool key_down[GLFW_KEY_LAST+1];
         bool key_clicked[GLFW_KEY_LAST+1];

@@ -331,6 +331,67 @@ bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_st
     return found_collision;
 }
 
+bool BoxCollider::intersect(ray r, float *t_out) {
+    mat4 inv_orientation_matrix = body.orientation.get_matrix().inverse();
+
+    vec3 ro = inv_orientation_matrix * (r.origin - body.position);
+    vec3 rd = inv_orientation_matrix * r.direction;
+
+    vec3 min = -1.0 * half_lengths;
+    vec3 max = half_lengths;
+
+    float t0x = (min.x - ro.x) / rd.x;
+    float t1x = (max.x - ro.x) / rd.x;
+
+    if (t0x > t1x) {
+        float temp = t0x;
+        t0x = t1x;
+        t1x = temp;
+    }
+
+    float t0y = (min.y - ro.y) / rd.y;
+    float t1y = (max.y - ro.y) / rd.y;
+
+    if (t0y > t1y) {
+        float temp = t0y;
+        t0y = t1y;
+        t1y = temp;
+    }
+
+    float t0z = (min.z - ro.z) / rd.z;
+    float t1z = (max.z - ro.z) / rd.z;
+
+    if (t0z > t1z) {
+        float temp = t0z;
+        t0z = t1z;
+        t1z = temp;
+    }
+
+    float t0 = t0x;
+    float t1 = t1x;
+
+    if (t0y > t0) {
+        t0 = t0y;
+    }
+    if (t1y < t1) {
+        t1 = t1y;
+    }
+
+    if (t0z > t0) {
+        t0 = t0z;
+    }
+    if (t1z < t1) {
+        t1 = t1z;
+    }
+
+    if (t0 < 0.0 || t0 > t1) {
+        return false;
+    }
+    
+    *t_out = t0;
+    return true;
+}
+
 void PlaneCollider::update_transform(Transform *transform) {
     transform->scale = vec3(100.0, 1.0, 100.0);
     transform->translation = vec3(0.0, -0.01, 0.0);
@@ -349,6 +410,10 @@ bool PlaneCollider::collide_with(BoxCollider *collider, ContactStore *contact_st
 }
 
 bool PlaneCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
+    return false;
+}
+
+bool PlaneCollider::intersect(ray r, float *t_out) {
     return false;
 }
 
@@ -398,6 +463,28 @@ bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact
         return true;
     }
     return false;
+}
+
+bool SphereCollider::intersect(ray r, float *t_out) {
+    float a = vec3::dot(r.direction, r.direction);
+    float b = 2.0 * (vec3::dot(r.direction, r.origin - body.position));
+    float c = vec3::dot(r.origin - body.position, r.origin - body.position) - radius * radius;
+    float det = b * b - 4 * a * c;
+
+    if (det < 0.0) {
+        return false;
+    }
+
+    float t1 = (-b + sqrt(det)) / (2.0 * a);
+    float t2 = (-b - sqrt(det)) / (2.0 * a);
+    float t = t1 < t2 ? t1 : t2;
+
+    if (t < 0.0) {
+        return false;
+    }
+
+    *t_out = t;
+    return true;
 }
 
 void Contact::apply_impulses() {

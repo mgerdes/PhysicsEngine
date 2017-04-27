@@ -1,6 +1,7 @@
 #pragma once
 
 #include <float.h>
+#include <math.h>
 
 #include "rigid_body.h"
 #include "scene.h"
@@ -34,6 +35,7 @@ class Collider {
         virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store) = 0;   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store) = 0;   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store) = 0;   
+        virtual bool intersect(ray r, float *t_out) = 0;
 };
 
 class SphereCollider : public Collider {
@@ -45,6 +47,7 @@ class SphereCollider : public Collider {
         virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual bool intersect(ray r, float *t_out);
 };
 
 class BoxCollider : public Collider {
@@ -60,6 +63,7 @@ class BoxCollider : public Collider {
         virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual bool intersect(ray r, float *t_out);
 };
 
 class PlaneCollider : public Collider {
@@ -71,6 +75,7 @@ class PlaneCollider : public Collider {
         virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
         virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual bool intersect(ray r, float *t_out);
 };
 
 class Contact {

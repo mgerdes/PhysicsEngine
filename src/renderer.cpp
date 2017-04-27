@@ -110,11 +110,9 @@ void Renderer::paint() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     Camera *camera = &scene->camera;
-    mat4 view_mat = mat4::look_at(camera->eye, camera->target, camera->up);
-    mat4 proj_mat = mat4::perspective_projection(camera->fov, camera->aspect, camera->near, camera->far);
 
-    glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, view_mat.m);
-    glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, proj_mat.m);
+    glUniformMatrix4fv(VIEW_MAT_LOCATION, 1, GL_TRUE, camera->view_mat.m);
+    glUniformMatrix4fv(PROJ_MAT_LOCATION, 1, GL_TRUE, camera->proj_mat.m);
     glUniformMatrix4fv(SHADOW_VIEW_MAT_LOCATION, 1, GL_TRUE, shadow.view_mat.m);
     glUniformMatrix4fv(SHADOW_PROJ_MAT_LOCATION, 1, GL_TRUE, shadow.proj_mat.m);
     glUniformMatrix4fv(SHADOW_2_VIEW_MAT_LOCATION, 1, GL_TRUE, shadow_2.view_mat.m);

@@ -497,3 +497,25 @@ quat operator*(const quat &u, const quat &v) {
 vec3 ray::point_at_time(float t) {
     return origin + t * direction;
 }
+
+bool ray::intersect_sphere(vec3 sphere_center, float sphere_radius, float *t_out) {
+    float a = vec3::dot(direction, direction);
+    float b = 2.0 * (vec3::dot(direction, origin - sphere_center));
+    float c = vec3::dot(origin - sphere_center, origin - sphere_center) - sphere_radius * sphere_radius;
+    float det = b * b - 4 * a * c;
+
+    if (det < 0.0) {
+        return false;
+    }
+
+    float t1 = (-b + sqrt(det)) / (2.0 * a);
+    float t2 = (-b - sqrt(det)) / (2.0 * a);
+    float t = t1 < t2 ? t1 : t2;
+
+    if (t < 0.0) {
+        return false;
+    }
+
+    *t_out = t;
+    return true;
+}

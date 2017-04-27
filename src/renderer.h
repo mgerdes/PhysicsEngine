@@ -49,6 +49,7 @@ class Renderer {
         Shadow shadow;
         Shadow shadow_2;
         TextureViewer texture_viewer;
+        Mesh coordinate_system_mesh;
 
     public:
         int width, height;

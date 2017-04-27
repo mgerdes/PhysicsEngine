@@ -227,6 +227,8 @@ int main() {
     scene.add_meshes_from_file("resources/cube.obj", &cube_mesh_ids);
     scene.add_meshes_from_file("resources/plane.obj", &plane_mesh_ids);
     scene.add_meshes_from_file("resources/sphere.obj", &sphere_mesh_ids);
+    scene.box_mesh_id = cube_mesh_ids[0];
+    scene.sphere_mesh_id = sphere_mesh_ids[0];
 
     Renderer renderer;
     renderer.scene = &scene;

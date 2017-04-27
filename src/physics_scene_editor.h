@@ -12,6 +12,7 @@ class PhysicsSceneEditor {
         int hovered_collider_id;
         int selected_collider_id;
         float selected_collider_distance;
+        int selected_axis;
 
     public:
         PhysicsSceneEditor(PhysicsEngine *physics_engine, Controls *controls);

@@ -466,25 +466,7 @@ bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact
 }
 
 bool SphereCollider::intersect(ray r, float *t_out) {
-    float a = vec3::dot(r.direction, r.direction);
-    float b = 2.0 * (vec3::dot(r.direction, r.origin - body.position));
-    float c = vec3::dot(r.origin - body.position, r.origin - body.position) - radius * radius;
-    float det = b * b - 4 * a * c;
-
-    if (det < 0.0) {
-        return false;
-    }
-
-    float t1 = (-b + sqrt(det)) / (2.0 * a);
-    float t2 = (-b - sqrt(det)) / (2.0 * a);
-    float t = t1 < t2 ? t1 : t2;
-
-    if (t < 0.0) {
-        return false;
-    }
-
-    *t_out = t;
-    return true;
+    return r.intersect_sphere(body.position, radius, t_out);
 }
 
 void Contact::apply_impulses() {

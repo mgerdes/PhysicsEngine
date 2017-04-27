@@ -60,6 +60,25 @@ Renderer::Renderer() : shadow(2048), shadow_2(2048) {
 
     shadow_2.view_mat = mat4::look_at(vec3(0.0, 10.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
     shadow_2.proj_mat = mat4::orthographic_projection(50.0, -50.0, 50.0, -50.0, -65.0, 65.0);
+
+    coordinate_system_mesh.num_vertices = 6;
+    float coordinate_system_points[18] = {
+        0.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 1.0,
+    };
+
+    glGenVertexArrays(1, &coordinate_system_mesh.vao);
+    glBindVertexArray(coordinate_system_mesh.vao);
+
+    glGenBuffers(1, &coordinate_system_mesh.position_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, coordinate_system_mesh.position_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 18, coordinate_system_points, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(0);
 }
 
 void Renderer::create_shadow_map(Shadow *shadow) {
@@ -162,6 +181,47 @@ void Renderer::paint() {
         }
 
         glBindVertexArray(0);
+    }
+
+    for (int i = 0; i < scene->instances.size(); i++) {
+        Instance instance = scene->instances[i];
+
+        if (instance.draw_outline) {
+            Mesh mesh = scene->meshes[instance.mesh_id];
+            Transform transform = scene->transforms[instance.transform_id];
+            mat4 translation = mat4::translation(transform.translation);
+            mat4 coord_system_model_mat = translation * mat4::scale(vec3(1.0, 1.0, 1.0));
+            mat4 ball_1_model_mat = translation * mat4::translation(vec3(1.0, 0.0, 0.0)) * mat4::scale(vec3(0.1, 0.1, 0.1));
+            mat4 ball_2_model_mat = translation * mat4::translation(vec3(0.0, 1.0, 0.0)) * mat4::scale(vec3(0.1, 0.1, 0.1));
+            mat4 ball_3_model_mat = translation * mat4::translation(vec3(0.0, 0.0, 1.0)) * mat4::scale(vec3(0.1, 0.1, 0.1));
+
+            glDisable(GL_DEPTH_TEST);
+            glUniformMatrix4fv(MODEL_MAT_LOCATION, 1, GL_TRUE, coord_system_model_mat.m);
+            glUniform1f(SINGLE_COLOR_LOCATION, true);
+            glBindVertexArray(coordinate_system_mesh.vao);
+            glUniform3f(DIFFUSE_LOCATION, 1.0, 0.0, 0.0);
+            glDrawArrays(GL_LINES, 0, 2);
+            glUniform3f(DIFFUSE_LOCATION, 0.0, 1.0, 0.0);
+            glDrawArrays(GL_LINES, 2, 4);
+            glUniform3f(DIFFUSE_LOCATION, 0.0, 0.0, 1.0);
+            glDrawArrays(GL_LINES, 4, 6);
+
+            glBindVertexArray(scene->meshes[scene->sphere_mesh_id].vao);
+
+            glUniformMatrix4fv(MODEL_MAT_LOCATION, 1, GL_TRUE, ball_1_model_mat.m);
+            glUniform3f(DIFFUSE_LOCATION, 1.0, 0.0, 0.0);
+            glDrawArrays(GL_TRIANGLES, 0, 3 * scene->meshes[scene->sphere_mesh_id].num_vertices);
+
+            glUniformMatrix4fv(MODEL_MAT_LOCATION, 1, GL_TRUE, ball_2_model_mat.m);
+            glUniform3f(DIFFUSE_LOCATION, 0.0, 1.0, 0.0);
+            glDrawArrays(GL_TRIANGLES, 0, 3 * scene->meshes[scene->sphere_mesh_id].num_vertices);
+
+            glUniformMatrix4fv(MODEL_MAT_LOCATION, 1, GL_TRUE, ball_3_model_mat.m);
+            glUniform3f(DIFFUSE_LOCATION, 0.0, 0.0, 1.0);
+            glDrawArrays(GL_TRIANGLES, 0, 3 * scene->meshes[scene->sphere_mesh_id].num_vertices);
+
+            glEnable(GL_DEPTH_TEST);
+        }
     }
 
     glUseProgram(0);

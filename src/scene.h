@@ -55,6 +55,7 @@ struct Instance {
     int mesh_id;
     int transform_id;
     bool casts_shadow, draw_outline;
+    bool draw_coordinate_system;
 
     Instance();
 };
@@ -70,6 +71,7 @@ struct Transform {
 class Scene {
     public:
         Camera camera;
+        int sphere_mesh_id, box_mesh_id;
         std::vector<Mesh> meshes;
         std::vector<Instance> instances;
         std::vector<Transform> transforms;

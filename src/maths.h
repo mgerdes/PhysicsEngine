@@ -95,6 +95,7 @@ struct ray {
     vec3 origin, direction; 
 
     vec3 point_at_time(float t);
+    bool intersect_sphere(vec3 sphere_center, float sphere_radius, float *t_out);
 };
 
 struct sphere {

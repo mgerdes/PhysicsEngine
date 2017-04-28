@@ -186,15 +186,15 @@ void init_ball_scene(PhysicsEngine *physics_engine) {
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(0.0, 20.0, 0.0), quat(vec3(0.1, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(0.0, 20.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(-10.0, 14.0, 0.0), quat(vec3(0.1, 0.0, 1.0), -0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(-10.0, 14.0, 0.0), quat(vec3(0.0, 0.0, 1.0), -0.55), 1.0, 0.2, 0.01, 0.02, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(5.0, 8.0, 0.0), quat(vec3(0.1, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(5.0, 8.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
 
     instance_id = scene->add_instance(sphere_mesh_ids[0]);
     scene->instances[instance_id].casts_shadow = true;

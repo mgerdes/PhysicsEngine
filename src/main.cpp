@@ -241,8 +241,8 @@ int main() {
 
     //init_catapult_scene(&physics_engine);
     //init_wall_scene(&physics_engine);
-    //init_jump_scene(&physics_engine);
-    init_ball_scene(&physics_engine);
+    init_jump_scene(&physics_engine);
+    //init_ball_scene(&physics_engine);
 
     float camera_azimuth = 0.0, camera_inclination = 0.6 * M_PI;
 

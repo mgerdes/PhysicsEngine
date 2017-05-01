@@ -131,48 +131,35 @@ void BoxCollider::clip_edges(line_segment *edges, std::vector<vec3> *contact_poi
 }
 
 bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
-    mat4 transformation = mat4::translation(body.position) * body.orientation.get_matrix();
+    mat4 transformation = body.orientation.get_matrix();
 
-    vec3 center = collider->body.position;
-    vec3 relative_center = transformation.inverse() * center;
+    vec3 closest_pt_on_box = transformation.inverse() * (collider->body.position - body.position);
 
-    if (ABS(relative_center.x) - collider->radius > half_lengths.x ||
-            ABS(relative_center.y) - collider->radius > half_lengths.y ||
-            ABS(relative_center.z) - collider->radius > half_lengths.z) {
-        return false;
-    }
+    if (closest_pt_on_box.x > half_lengths.x) closest_pt_on_box.x = half_lengths.x;
+    if (closest_pt_on_box.x < -half_lengths.x) closest_pt_on_box.x = -half_lengths.x;
 
-    vec3 closest_pt = vec3(0.0, 0.0, 0.0);
-    float dist;
+    if (closest_pt_on_box.y > half_lengths.y) closest_pt_on_box.y = half_lengths.y;
+    if (closest_pt_on_box.y < -half_lengths.y) closest_pt_on_box.y = -half_lengths.y;
 
-    dist = relative_center.x;
-    if (dist > half_lengths.x) dist = half_lengths.x;
-    if (dist < -half_lengths.x) dist = -half_lengths.x;
-    closest_pt.x = dist;
+    if (closest_pt_on_box.z > half_lengths.z) closest_pt_on_box.z = half_lengths.z;
+    if (closest_pt_on_box.z < -half_lengths.z) closest_pt_on_box.z = -half_lengths.z;
 
-    dist = relative_center.y;
-    if (dist > half_lengths.y) dist = half_lengths.y;
-    if (dist < -half_lengths.y) dist = -half_lengths.y;
-    closest_pt.y = dist;
+    closest_pt_on_box = (transformation * closest_pt_on_box) + body.position;
 
-    dist = relative_center.z;
-    if (dist > half_lengths.z) dist = half_lengths.z;
-    if (dist < -half_lengths.z) dist = -half_lengths.z;
-    closest_pt.z = dist;
+    float dist = (closest_pt_on_box - collider->body.position).length_squared();
 
-    dist = (closest_pt - relative_center).length_squared();
     if (dist > collider->radius * collider->radius) {
         return false;
     }
 
-    vec3 closest_pt_world = transformation * closest_pt;
+    vec3 normal = (closest_pt_on_box - collider->body.position).normalize();
+    vec3 closest_pt_on_sphere = collider->body.position + collider->radius * normal; 
 
     Contact contact;
     contact.collider1 = collider;
     contact.collider2 = this;
-    contact.normal = (closest_pt_world - center).normalize();
-    contact.position = closest_pt_world;
-
+    contact.normal = normal;
+    contact.position = 0.5 * (closest_pt_on_sphere + closest_pt_on_box);
     contact_store->add(contact);
 
     return true;

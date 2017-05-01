@@ -2,6 +2,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <vector>
 
 #include "rigid_body.h"
 #include "scene.h"
@@ -52,8 +53,11 @@ class SphereCollider : public Collider {
 
 class BoxCollider : public Collider {
     private:
-        float transform_to_axis(BoxCollider *collider, vec3 axis);
-        float penetration_on_axis(BoxCollider *colldier1, BoxCollider *colldier2, vec3 axis, vec3 to_center);
+        bool contains_point(const vec3 &p);
+        void get_points(vec3 *points);
+        void get_edges(line_segment *edges); 
+        void clip_edges(line_segment *edges, std::vector<vec3> *contact_points);
+        void get_planes(plane *planes);
 
     public: 
         vec3 half_lengths;

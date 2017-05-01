@@ -61,24 +61,42 @@ Renderer::Renderer() : shadow(2048), shadow_2(2048) {
     shadow_2.view_mat = mat4::look_at(vec3(0.0, 10.0, 10.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
     shadow_2.proj_mat = mat4::orthographic_projection(50.0, -50.0, 50.0, -50.0, -65.0, 65.0);
 
-    coordinate_system_mesh.num_vertices = 6;
-    float coordinate_system_points[18] = {
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 1.0,
-    };
+    {
+        coordinate_system_mesh.num_vertices = 6;
+        float points[18] = {
+            0.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 1.0,
+        };
 
-    glGenVertexArrays(1, &coordinate_system_mesh.vao);
-    glBindVertexArray(coordinate_system_mesh.vao);
+        glGenVertexArrays(1, &coordinate_system_mesh.vao);
+        glBindVertexArray(coordinate_system_mesh.vao);
 
-    glGenBuffers(1, &coordinate_system_mesh.position_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, coordinate_system_mesh.position_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 18, coordinate_system_points, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
+        glGenBuffers(1, &coordinate_system_mesh.position_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, coordinate_system_mesh.position_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 18, points, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(0);
+    }
+
+    {
+        point_mesh.num_vertices = 1;
+        float points[3] = {
+            0.0, 0.0, 0.0,
+        };
+
+        glGenVertexArrays(1, &point_mesh.vao);
+        glBindVertexArray(point_mesh.vao);
+
+        glGenBuffers(1, &point_mesh.position_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, point_mesh.position_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3, points, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(0);
+    }
 }
 
 void Renderer::create_shadow_map(Shadow *shadow) {
@@ -223,6 +241,21 @@ void Renderer::paint() {
             glEnable(GL_DEPTH_TEST);
         }
     }
+
+    /*
+    for (int i = 0; i < points_to_render.size(); i++) {
+        vec3 p = points_to_render[i];
+
+        glDisable(GL_DEPTH_TEST);
+        glPointSize(5.0);
+        glUniformMatrix4fv(MODEL_MAT_LOCATION, 1, GL_TRUE, mat4::translation(p).m);
+        glUniform1f(SINGLE_COLOR_LOCATION, true);
+        glUniform3f(DIFFUSE_LOCATION, 1.0, 1.0, 0.0);
+        glBindVertexArray(point_mesh.vao);
+        glDrawArrays(GL_POINTS, 0, 1);
+        glEnable(GL_DEPTH_TEST);
+    }
+    */
 
     glUseProgram(0);
 }

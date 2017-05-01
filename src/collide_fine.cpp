@@ -1,4 +1,5 @@
 #include "collide_fine.h"
+#include "renderer.h"
 
 void ContactStore::add(Contact contact) {
     contacts.push_back(contact);
@@ -22,24 +23,111 @@ bool BoxCollider::collide(Collider *collider, ContactStore *contact_store) {
     return collider->collide_with(this, contact_store);
 }
 
-float BoxCollider::transform_to_axis(BoxCollider *collider, vec3 axis) {
-    mat4 transformation = collider->body.orientation.get_matrix();
+bool BoxCollider::contains_point(const vec3 &point) {
+    mat4 transformation = body.orientation.get_matrix().inverse();
+    vec3 box_point = transformation * (point - body.position);
+    vec3 new_half_lengths = half_lengths + vec3(0.01, 0.01, 0.01);
+
+    if (box_point.x < -new_half_lengths.x || box_point.x > new_half_lengths.x) {
+        return false;
+    }
+
+    if (box_point.y < -new_half_lengths.y || box_point.y > new_half_lengths.y) {
+        return false;
+    }
+
+    if (box_point.z < -new_half_lengths.z || box_point.z > new_half_lengths.z) {
+        return false;
+    }
+
+    return true;
 
     vec3 axes[3];
-    axes[0] = vec3(transformation.m[0], transformation.m[4], transformation.m[8]);
-    axes[1] = vec3(transformation.m[1], transformation.m[5], transformation.m[9]);
-    axes[2] = vec3(transformation.m[2], transformation.m[6], transformation.m[10]);
+    axes[0] = vec3(transformation.m[0], transformation.m[4], transformation.m[8]).normalize();
+    axes[1] = vec3(transformation.m[1], transformation.m[5], transformation.m[9]).normalize();
+    axes[2] = vec3(transformation.m[2], transformation.m[6], transformation.m[10]).normalize();
 
-    return collider->half_lengths.x * ABS(vec3::dot(axes[0], axis))
-        + collider->half_lengths.y * ABS(vec3::dot(axes[1], axis))
-        + collider->half_lengths.z * ABS(vec3::dot(axes[2], axis));
+    float axes_0_dist = vec3::dot(point - body.position, axes[0]);
+    if (axes_0_dist < -half_lengths.x || axes_0_dist > half_lengths.x) {
+        return false;
+    }
+
+    float axes_1_dist = vec3::dot(point - body.position, axes[1]);
+    if (axes_1_dist < -half_lengths.y || axes_1_dist > half_lengths.y) {
+        return false;
+    }
+
+    float axes_2_dist = vec3::dot(point - body.position, axes[2]);
+    if (axes_2_dist < -half_lengths.z || axes_2_dist > half_lengths.z) {
+        return false;
+    }
+
+    return true;
 }
 
-float BoxCollider::penetration_on_axis(BoxCollider *collider1, BoxCollider *collider2, vec3 axis, vec3 to_center) {
-    float body1_projection = transform_to_axis(collider1, axis);
-    float body2_projection = transform_to_axis(collider2, axis);
-    float distance = ABS(vec3::dot(to_center, axis));
-    return body1_projection + body2_projection - distance;
+void BoxCollider::get_points(vec3 *points) {
+    mat4 transformation = body.orientation.get_matrix();
+    vec3 position = body.position;
+
+    points[0] = transformation * vec3(half_lengths.x, half_lengths.y, half_lengths.z) + position;
+    points[1] = transformation * vec3(half_lengths.x, half_lengths.y, -half_lengths.z) + position;
+    points[2] = transformation * vec3(half_lengths.x, -half_lengths.y, half_lengths.z) + position;
+    points[3] = transformation * vec3(half_lengths.x, -half_lengths.y, -half_lengths.z) + position;
+    points[4] = transformation * vec3(-half_lengths.x, half_lengths.y, half_lengths.z) + position;
+    points[5] = transformation * vec3(-half_lengths.x, half_lengths.y, -half_lengths.z) + position;
+    points[6] = transformation * vec3(-half_lengths.x, -half_lengths.y, half_lengths.z) + position;
+    points[7] = transformation * vec3(-half_lengths.x, -half_lengths.y, -half_lengths.z) + position;
+}
+
+void BoxCollider::get_edges(line_segment *edges) {
+    static int edge_indices[12][2] = {
+        {0, 1}, {0, 2}, {1, 3}, {2, 3},
+        {4, 5}, {4, 6}, {5, 7}, {6, 7},
+        {0, 4}, {1, 5}, {2, 6}, {3, 7},
+    };
+
+    vec3 points[8];
+    get_points(points);
+
+    for (int i = 0; i < 12; i++) {
+        edges[i] = line_segment(points[edge_indices[i][0]], points[edge_indices[i][1]]);
+    }
+}
+
+void BoxCollider::get_planes(plane *planes) {
+    mat4 transformation = body.orientation.get_matrix();    
+
+    vec3 axes[3];
+    axes[0] = vec3(transformation.m[0], transformation.m[4], transformation.m[8]).normalize();
+    axes[1] = vec3(transformation.m[1], transformation.m[5], transformation.m[9]).normalize();
+    axes[2] = vec3(transformation.m[2], transformation.m[6], transformation.m[10]).normalize();
+
+    planes[0] = plane(body.position + half_lengths.x * axes[0], axes[0]);
+    planes[1] = plane(body.position - half_lengths.x * axes[0], -1.0 * axes[0]);
+    planes[2] = plane(body.position + half_lengths.y * axes[1], axes[1]);
+    planes[3] = plane(body.position - half_lengths.y * axes[1], -1.0 * axes[1]);
+    planes[4] = plane(body.position + half_lengths.z * axes[2], axes[2]);
+    planes[5] = plane(body.position - half_lengths.z * axes[2], -1.0 * axes[2]);
+}
+
+void BoxCollider::clip_edges(line_segment *edges, std::vector<vec3> *contact_points) {
+    plane planes[6];
+    get_planes(planes);
+
+    for (int i = 0; i < 6; i++) {
+        plane p = planes[i];
+
+        for (int j = 0; j < 12; j++) {
+            line_segment e = edges[j];
+            vec3 intersection;
+
+            if (e.intersect_plane(p, &intersection)) {
+                if (contains_point(intersection)) {
+                    contact_points->push_back(intersection);
+                }
+            }
+        }
+    }
 }
 
 bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
@@ -99,200 +187,106 @@ bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_stor
 
     vec3 axes[15];
 
-    axes[0] = vec3(transformation1.m[0], transformation1.m[4], transformation1.m[8]);
-    axes[1] = vec3(transformation1.m[1], transformation1.m[5], transformation1.m[9]);
-    axes[2] = vec3(transformation1.m[2], transformation1.m[6], transformation1.m[10]);
+    axes[0] = vec3(transformation1.m[0], transformation1.m[4], transformation1.m[8]).normalize();
+    axes[1] = vec3(transformation1.m[1], transformation1.m[5], transformation1.m[9]).normalize();
+    axes[2] = vec3(transformation1.m[2], transformation1.m[6], transformation1.m[10]).normalize();
 
-    axes[3] = vec3(transformation2.m[0], transformation2.m[4], transformation2.m[8]);
-    axes[4] = vec3(transformation2.m[1], transformation2.m[5], transformation2.m[9]);
-    axes[5] = vec3(transformation2.m[2], transformation2.m[6], transformation2.m[10]);
+    axes[3] = vec3(transformation2.m[0], transformation2.m[4], transformation2.m[8]).normalize();
+    axes[4] = vec3(transformation2.m[1], transformation2.m[5], transformation2.m[9]).normalize();
+    axes[5] = vec3(transformation2.m[2], transformation2.m[6], transformation2.m[10]).normalize();
 
-    axes[6] = vec3::cross(axes[0], axes[3]);
-    axes[7] = vec3::cross(axes[0], axes[4]);
-    axes[8] = vec3::cross(axes[0], axes[5]);
+    axes[6] = vec3::cross(axes[0], axes[3]).normalize();
+    axes[7] = vec3::cross(axes[0], axes[4]).normalize();
+    axes[8] = vec3::cross(axes[0], axes[5]).normalize();
 
-    axes[9] = vec3::cross(axes[1], axes[3]);
-    axes[10] = vec3::cross(axes[1], axes[4]);
-    axes[11] = vec3::cross(axes[1], axes[5]);
+    axes[9] = vec3::cross(axes[1], axes[3]).normalize();
+    axes[10] = vec3::cross(axes[1], axes[4]).normalize();
+    axes[11] = vec3::cross(axes[1], axes[5]).normalize();
 
-    axes[12] = vec3::cross(axes[2], axes[3]);
-    axes[13] = vec3::cross(axes[2], axes[4]);
-    axes[14] = vec3::cross(axes[2], axes[5]);
+    axes[12] = vec3::cross(axes[2], axes[3]).normalize();
+    axes[13] = vec3::cross(axes[2], axes[4]).normalize();
+    axes[14] = vec3::cross(axes[2], axes[5]).normalize();
 
-    float best_overlap = FLT_MAX;
-    int best_case;
-    int best_single_axis_case;
-    vec3 to_center = body2.position - body1.position;
+    float smallest_penetration = FLT_MAX;
+    int smallest_penetration_case = -1;
 
-    for (int k = 0; k < 15; k++) {
-        vec3 axis = axes[k];
+    for (int i = 0; i < 15; i++) {
+        vec3 axis = axes[i];
 
-        if (axis.length() < 0.001) {
+        if (axis.length() < 0.0001) {
             continue;
         }
-        axis = axis.normalize();
 
-        float overlap = penetration_on_axis(this, collider, axis, to_center);
-        if (overlap < 0) {
+        vec3 box1_points[8];
+        this->get_points(box1_points);
+        float i1_min = vec3::dot(box1_points[0], axis);
+        float i1_max = vec3::dot(box1_points[0], axis);
+        for (int j = 1; j < 8; j++) {
+            i1_min = MIN(vec3::dot(box1_points[j], axis), i1_min);
+            i1_max = MAX(vec3::dot(box1_points[j], axis), i1_max);
+        }
+
+        vec3 box2_points[8];
+        collider->get_points(box2_points);
+        float i2_min = vec3::dot(box2_points[0], axis);
+        float i2_max = vec3::dot(box2_points[0], axis);
+        for (int j = 1; j < 8; j++) {
+            i2_min = MIN(vec3::dot(box2_points[j], axis), i2_min);
+            i2_max = MAX(vec3::dot(box2_points[j], axis), i2_max);
+        }
+
+        if (i1_min > i2_max || i2_min > i1_max) {
             return false;
         }
-        if (overlap < best_overlap) {
-            best_overlap = overlap;
-            best_case = k;
-        }
 
-        if (k == 5) {
-            best_single_axis_case = best_case;
+        float i1_length = i1_max - i1_min;
+        float i2_length = i2_max - i2_min;
+        float total_length = MAX(i1_max, i2_max) - MIN(i1_min, i2_min);
+
+        float penetration = i1_length + i2_length - total_length;
+
+        if (penetration < smallest_penetration) {
+            smallest_penetration = penetration;
+            smallest_penetration_case = i;
         }
     }
 
-    if (best_case < 3) {
-        vec3 normal = axes[best_case];
-        if (vec3::dot(to_center, normal) > 0) {
-            normal = -1.0 * normal; 
-        }
+    std::vector<vec3> contact_points;
+    line_segment box_edges[12];
 
-        vec3 vertex = collider->half_lengths;
+    this->get_edges(box_edges); 
+    collider->clip_edges(box_edges, &contact_points);
 
-        if (vec3::dot(axes[3], normal) < 0) {
-            vertex.x = -vertex.x;
-        }
-        if (vec3::dot(axes[4], normal) < 0) {
-            vertex.y = -vertex.y;
-        }
-        if (vec3::dot(axes[5], normal) < 0) {
-            vertex.z = -vertex.z;
-        }
+    collider->get_edges(box_edges);
+    this->clip_edges(box_edges, &contact_points);
 
-        vertex = mat4::translation(body2.position) * transformation2 * vertex;
+    std::vector<vec3> unique_contact_points;
+    for (int i = 0; i < contact_points.size(); i++) {
+        for (int j = i + 1; j < contact_points.size(); j++) {
+            if ((contact_points[i] - contact_points[j]).length_squared() < 0.001) {
+                break;
+            }
 
-        Contact contact;
-        contact.collider1 = collider;
-        contact.collider2 = this;
-        contact.position = vertex;
-        contact.normal = normal;
-        contact.penetration = best_overlap;
-        contact.collision_case = best_case;
-        contact_store->add(contact);
-        return true;
+            if (j == contact_points.size() - 1) {
+                unique_contact_points.push_back(contact_points[i]);
+            }
+        }
     }
-    else if (best_case < 6) {
-        to_center = -1.0 * to_center;
 
-        vec3 normal = axes[best_case];
-        if (vec3::dot(to_center, normal) > 0) {
-            normal = -1.0 * normal; 
-        }
-
-        vec3 vertex = this->half_lengths;
-
-        if (vec3::dot(axes[0], normal) < 0) {
-            vertex.x = -vertex.x;
-        }
-        if (vec3::dot(axes[1], normal) < 0) {
-            vertex.y = -vertex.y;
-        }
-        if (vec3::dot(axes[2], normal) < 0) {
-            vertex.z = -vertex.z;
-        }
-
-        vertex = mat4::translation(body1.position) * transformation1 * vertex;
-
-        Contact contact;
+    for (int i = 0; i < unique_contact_points.size(); i++) {
+        Contact contact; 
         contact.collider1 = this;
         contact.collider2 = collider;
-        contact.position = vertex;
-        contact.normal = normal;
-        contact.penetration = best_overlap;
+        contact.position = unique_contact_points[i];
+        contact.normal = axes[smallest_penetration_case];
+        if (vec3::dot(contact.normal, body1.position - body2.position) > 0) {
+            contact.normal = -1.0 * contact.normal;
+        }
+        contact.penetration = smallest_penetration;
         contact_store->add(contact);
-        return true;
-    }
-    else {
-        int one_axis_index = (best_case - 6) / 3;
-        int two_axis_index = (best_case - 6) % 3;
-
-        vec3 one_axis = axes[one_axis_index];
-        vec3 two_axis = axes[two_axis_index + 3];
-        vec3 axis = vec3::cross(one_axis, two_axis).normalize();
-
-        if (vec3::dot(axis, to_center) > 0) {
-            axis = -1.0 * axis;
-        }
-
-        vec3 pt_on_edge1 = this->half_lengths;
-        vec3 pt_on_edge2 = collider->half_lengths;
-        for (int i = 0; i < 3; i++) {
-            if (i == one_axis_index) {
-                pt_on_edge1[i] = 0.0;
-            }
-            else if (vec3::dot(axes[i], axis) > 0.0) {
-                pt_on_edge1[i] = -pt_on_edge1[i];
-            }
-
-            if (i == two_axis_index) {
-                pt_on_edge2[i] = 0.0;
-            }
-            else if (vec3::dot(axes[i + 3], axis) < 0.0) {
-                pt_on_edge2[i] = -pt_on_edge2[i];
-            }
-        }
-
-        pt_on_edge1 = mat4::translation(body1.position) * transformation1 * pt_on_edge1;
-        pt_on_edge2 = mat4::translation(body2.position) * transformation2 * pt_on_edge2;
-
-        float sm_one = one_axis.length_squared();
-        float sm_two = two_axis.length_squared();
-        float dot_product_edges = vec3::dot(one_axis, two_axis);
-
-        vec3 to_st = pt_on_edge1 - pt_on_edge2;
-        float dp_sta_one = vec3::dot(axes[one_axis_index], to_st);
-        float dp_sta_two = vec3::dot(axes[two_axis_index + 3], to_st);
-
-        float denom = sm_one * sm_two - dot_product_edges * dot_product_edges;
-
-        if (ABS(denom) < 0.0001f) {
-            Contact contact;
-            contact.collider1 = this;
-            contact.collider2 = collider;
-            contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
-            contact.normal = -1.0 * axis;
-            contact.penetration = best_overlap;
-            contact_store->add(contact);
-            return true;
-        }
-
-        float a = (dot_product_edges * dp_sta_two - sm_two * dp_sta_one) / denom;
-        float b = (sm_one * dp_sta_two - dot_product_edges * dp_sta_one) / denom;
-
-        float body_1_half_width = this->half_lengths[one_axis_index];
-        float body_2_half_width = collider->half_lengths[two_axis_index];
-
-        if (a > body_1_half_width || a < -body_1_half_width || b > body_2_half_width || b < -body_2_half_width) {
-            Contact contact;
-            contact.collider1 = this;
-            contact.collider2 = collider;
-            contact.position = best_single_axis_case > 2 ? pt_on_edge1 : pt_on_edge2; 
-            contact.normal = -1.0 * axis;
-            contact.penetration = best_overlap;
-            contact_store->add(contact);
-            return true;
-        }
-        else {
-            vec3 nearest_pt_on_one = pt_on_edge1 + a * one_axis;
-            vec3 nearest_pt_on_two = pt_on_edge2 + b * two_axis;
-
-            Contact contact;
-            contact.collider1 = this;
-            contact.collider2 = collider;
-            contact.position = 0.5 * nearest_pt_on_one + 0.5 * nearest_pt_on_two;
-            contact.normal = -1.0 * axis;
-            contact.penetration = best_overlap;
-            contact_store->add(contact);
-            return true;
-        }
     }
 
-    return false;
+    return unique_contact_points.size() > 0;
 }
 
 bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {

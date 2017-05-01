@@ -519,3 +519,46 @@ bool ray::intersect_sphere(vec3 sphere_center, float sphere_radius, float *t_out
     *t_out = t;
     return true;
 }
+
+bool ray::intersect_plane(const plane &p, float *t_out) {
+    float det = vec3::dot(p.n, direction);
+
+    if (det == 0.0) {
+        return false;
+    }
+
+    *t_out = (vec3::dot(p.n, p.p) - vec3::dot(p.n, origin)) / det;
+    return true;
+}
+
+plane::plane() {
+}
+
+plane::plane(const vec3 &p, const vec3 &n) {
+    this->p = p;
+    this->n = n;
+}
+
+line_segment::line_segment() {
+}
+
+line_segment::line_segment(const vec3 &p0, const vec3 &p1) {
+    this->p0 = p0;
+    this->p1 = p1;
+}
+
+bool line_segment::intersect_plane(const plane &p, vec3 *point) {
+    ray r;
+    r.origin = p0;
+    r.direction = p1 - p0;
+
+    float t;
+    if (r.intersect_plane(p, &t)) {
+        if (t >= 0.0 && t <= 1.0) {
+            *point = r.point_at_time(t);
+            return true;
+        }
+    }
+
+    return false;
+}

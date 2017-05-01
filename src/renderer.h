@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <vector>
 
 #include "scene.h"
 #include "maths.h"
@@ -50,6 +51,7 @@ class Renderer {
         Shadow shadow_2;
         TextureViewer texture_viewer;
         Mesh coordinate_system_mesh;
+        Mesh point_mesh;
 
     public:
         int width, height;

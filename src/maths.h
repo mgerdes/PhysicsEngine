@@ -91,14 +91,31 @@ struct quat {
 
 quat operator*(const quat &u, const quat &v);
 
+struct plane {
+    vec3 p, n;
+
+    plane();
+    plane(const vec3 &p, const vec3 &n);
+};
+
 struct ray {
     vec3 origin, direction; 
 
     vec3 point_at_time(float t);
     bool intersect_sphere(vec3 sphere_center, float sphere_radius, float *t_out);
+    bool intersect_plane(const plane &p, float *t_out);
 };
 
 struct sphere {
     vec3 center;
     float radius;
+};
+
+struct line_segment {
+    vec3 p0, p1;
+
+    line_segment();
+    line_segment(const vec3 &p0, const vec3 &p1); 
+
+    bool intersect_plane(const plane &p, vec3 *point);  
 };

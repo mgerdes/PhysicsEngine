@@ -24,7 +24,7 @@ void PhysicsSceneEditor::update(float dt) {
         int instance_id = scene->add_instance(scene->box_mesh_id);
         int transform_id = scene->instances[instance_id].transform_id;
         vec3 new_collider_position = controls->mouse_ray.point_at_time(5.0);
-        int collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.0, 1.0), new_collider_position, quat(), 1.0, 0.2, 0.01, 0.02, false);
+        int collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.0, 1.0), new_collider_position, quat(), 10.0, 0.2, 0.1, 0.2, false);
         Collider *new_collider = physics_engine->colliders[collider_id];
         Transform *new_transform = &scene->transforms[transform_id];
         new_collider->update_transform(new_transform);

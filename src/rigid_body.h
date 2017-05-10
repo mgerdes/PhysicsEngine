@@ -21,10 +21,17 @@ class RigidBody {
         vec3 force_accumulator;
         vec3 torque_accumulator;
 
+        float restitution;
+        float friction;
+
         bool is_frozen;
         bool is_static;
 
-        void apply_impulse(vec3 j, vec3 r);
+        void update(float dt);
+        float get_inv_mass();
+        mat4 get_inv_inertia_tensor();
+        void apply_impulse(const vec3 &impulse);
+        void apply_rotational_impulse(const vec3 &point, const vec3 &impulse);
         void apply_dampening();
         void integrate_position(float dt); 
         void integrate_velocity(float dt); 
@@ -32,4 +39,3 @@ class RigidBody {
         void add_force_at_point(const vec3 &force, const vec3 &point);
         void restore_position();
 };
-

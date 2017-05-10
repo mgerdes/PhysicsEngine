@@ -63,6 +63,8 @@ struct mat4 {
     mat4 normal_transform();
     void print();
 
+    static mat4 zero();
+    static mat4 identity();
     static mat4 translation(const vec3 &v);
     static mat4 scale(const vec3 &v);
     static mat4 rotation_x(float theta);

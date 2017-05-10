@@ -9,10 +9,8 @@
 class PhysicsEngine {
     private:
         ContactStore contact_store;
-        std::vector<Contact> contacts;
 
         void generate_contacts();
-        void resolve_contacts(bool override_resitution, float e);
         void integrate_positions(float dt);
         void integrate_velocities(float dt);
         void restore_positions();

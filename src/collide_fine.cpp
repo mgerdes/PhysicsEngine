@@ -160,6 +160,7 @@ bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_s
     contact.collider2 = this;
     contact.normal = normal;
     contact.position = 0.5 * (closest_pt_on_sphere + closest_pt_on_box);
+    contact.penetration = (closest_pt_on_box - closest_pt_on_sphere).length();
     contact_store->add(contact);
 
     return true;
@@ -303,7 +304,7 @@ bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_st
             contact.collider2 = collider;
             contact.position = point_world;
             contact.normal = vec3(0.0, -1.0, 0.0);
-            contact.penetration = 0.0;
+            contact.penetration = -1.0 * point_world.y;
 
             contact_store->add(contact);
         }
@@ -421,6 +422,7 @@ bool SphereCollider::collide_with(SphereCollider *collider, ContactStore *contac
     contact.collider1 = this;
     contact.collider2 = collider;
     contact.normal = r.normalize();
+    contact.penetration = (collider->radius + this->radius) - r.length();
     contact.position = v1 + this->radius * contact.normal;
 
     contact_store->add(contact);
@@ -433,13 +435,13 @@ bool SphereCollider::collide_with(BoxCollider *collider, ContactStore *contact_s
 }
 
 bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
-    if (this->body.position.y - this->radius < -0.02) {
+    if (body.position.y - radius < 0.0) {
         Contact contact;
         contact.collider1 = this;
         contact.collider2 = collider;
-        contact.position = vec3(this->body.position.x, this->body.position.y - this->radius + 0.02, this->body.position.z);
+        contact.position = vec3(body.position.x, body.position.y - radius, body.position.z);
         contact.normal = vec3(0.0, -1.0, 0.0);
-        contact.penetration = 0.0;
+        contact.penetration = -(body.position.y - radius);
         contact_store->add(contact);
         return true;
     }
@@ -448,103 +450,4 @@ bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact
 
 bool SphereCollider::intersect(ray r, float *t_out) {
     return r.intersect_sphere(body.position, radius, t_out);
-}
-
-void Contact::apply_impulses() {
-    this->apply_impulses(MAX(collider1->restitution, collider2->restitution));
-}
-
-void Contact::apply_impulses(float e) {
-    RigidBody *b1 = &collider1->body;
-    RigidBody *b2 = &collider2->body;
-
-    mat4 R1 = b1->orientation.get_matrix();
-    mat4 R2 = b2->orientation.get_matrix();
-
-    float m1_inv;
-    mat4 I1_inv;
-    if (b1->is_static || b1->is_frozen) {
-        m1_inv = 0.0;
-        I1_inv = mat4(
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0
-                );
-    }
-    else {
-        m1_inv = 1.0 / b1->mass;
-        I1_inv = (R1 * b1->inertia_tensor * R1.inverse()).inverse();
-    }
-
-    float m2_inv;
-    mat4 I2_inv;
-    if (b2->is_static || b2->is_frozen) {
-        m2_inv = 0.0;
-        I2_inv = mat4(
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0
-                );
-    }
-    else {
-        m2_inv = 1.0 / b2->mass;
-        I2_inv = (R2 * b2->inertia_tensor * R2.inverse()).inverse();
-    }
-
-    vec3 r1 = position - b1->position;
-    vec3 r2 = position - b2->position;
-
-    vec3 w1 = b1->angular_velocity;
-    vec3 v1 = b1->velocity + vec3::cross(w1, r1);
-
-    vec3 w2 = b2->angular_velocity;
-    vec3 v2 = b2->velocity + vec3::cross(w2, r2);
-
-    vec3 vr = v2 - v1;
-    vec3 n = normal;
-
-    float temp1 = m1_inv + vec3::dot(I1_inv * vec3::cross(vec3::cross(r1, n), r1), n);
-    float temp2 = m2_inv + vec3::dot(I2_inv * vec3::cross(vec3::cross(r2, n), r2), n);
-
-    float j = MAX(-(1.0 + e) * vec3::dot(vr, n) / (temp1 + temp2), 0.0);
-
-    b1->apply_impulse(-1.0 * j * n, r1);
-    b2->apply_impulse(j * n, r2);
-
-    vec3 t1;
-    if (vec3::dot(vr, n) != 0.0) {
-        t1 = vr - vec3::dot(vr, n) * n;
-    }
-    else {
-        vec3 f = b1->force_accumulator;
-        t1 = f - vec3::dot(f, n) * n;
-    }
-    t1 = t1.normalize();
-
-    vec3 t2;
-    if (vec3::dot(vr, n) != 0.0) {
-        t2 = vr - vec3::dot(vr, n) * n;
-    }
-    else {
-        vec3 f = b2->force_accumulator;
-        t2 = f - vec3::dot(f, n) * n;
-    }
-    t2 = t2.normalize();
-
-    float us = MAX(collider1->us, collider2->us);
-    float ud = MAX(collider1->ud, collider2->ud);
-
-    float jf1 = b1->mass * vec3::dot(vr, t1);
-    if (jf1 >= us * j) {
-        jf1 = -ud * j;
-    }
-    b1->apply_impulse(-1.0 * jf1 * t1, r1);
-
-    float jf2 = b2->mass * vec3::dot(1.0 * vr, t2);
-    if (jf2 >= us * j) {
-        jf2 = -ud * j;
-    }
-    b2->apply_impulse(jf2 * t2, r2);
 }

@@ -143,6 +143,9 @@ void init_jump_scene(PhysicsEngine *physics_engine) {
     int instance_id, transform_id, collider_id;
     Scene *scene = physics_engine->scene;
 
+    float restitution = 0.5;
+    float friction = 0.2;
+
     instance_id = scene->add_instance(plane_mesh_ids[0]);
     scene->instances[instance_id].casts_shadow = false;
     scene->instances[instance_id].draw_outline = false;
@@ -151,23 +154,24 @@ void init_jump_scene(PhysicsEngine *physics_engine) {
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 0.7, 1.0), vec3(-4.0, 0.7, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.75), 1.0, 0.2, 0.4, 0.3, true);
+    physics_engine->add_cube_collider(transform_id, vec3(1.0, 0.7, 1.0), vec3(-4.0, 0.7, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.75), 1.0, restitution, friction, 0.3, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.4, 1.0), vec3(-1.0, 1.4, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.55), 1.0, 0.2, 0.4, 0.3, true);
+    physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.4, 1.0), vec3(-1.0, 1.4, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.55), 1.0, restitution, friction, 0.3, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.1, 1.0), vec3(2.0, 2.1, -1.0), quat(vec3(0.0, 1.0, 0.0), 0.25), 1.0, 0.2, 0.4, 0.3, true);
+    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.1, 1.0), vec3(2.0, 2.1, -1.0), quat(vec3(0.0, 1.0, 0.0), 0.25), 1.0, restitution, friction, 0.3, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.8, 1.0), vec3(5.0, 2.8, -2.0), quat(vec3(0.0, 1.0, 0.0), 0.83), 1.0, 0.2, 0.4, 0.3, true);
+    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.8, 1.0), vec3(5.0, 2.8, -2.0), quat(vec3(0.0, 1.0, 0.0), 0.83), 1.0, restitution, friction, 0.3, true);
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
+    instance_id = scene->add_instance(sphere_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    collider_id = physics_engine->add_cube_collider(transform_id, vec3(0.2, 0.2, 0.2), vec3(-7.0, 0.2, 0.0), quat(), 1.0, 0.0, 0.8, 0.7, false);
+    //collider_id = physics_engine->add_cube_collider(transform_id, vec3(0.2, 0.2, 0.2), vec3(-7.0, 0.2, 0.0), quat(), 1.0, restitution, friction, 0.7, false);
+    collider_id = physics_engine->add_sphere_collider(transform_id, vec3(-7.0, 0.2, 0.0), 0.2, 1.0, restitution, friction, 0.02, false);
 
     controlled_cube = physics_engine->colliders[collider_id];
 
@@ -178,6 +182,9 @@ void init_ball_scene(PhysicsEngine *physics_engine) {
     int instance_id, transform_id, collider_id;
     Scene *scene = physics_engine->scene;
 
+    float restitution = 0.2;
+    float friction = 0.2;
+
     instance_id = scene->add_instance(plane_mesh_ids[0]);
     scene->instances[instance_id].casts_shadow = false;
     scene->instances[instance_id].draw_outline = false;
@@ -186,27 +193,27 @@ void init_ball_scene(PhysicsEngine *physics_engine) {
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(0.0, 20.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(0.0, 20.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, restitution, friction, 0.02, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(-10.0, 14.0, 0.0), quat(vec3(0.0, 0.0, 1.0), -0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(-10.0, 14.0, 0.0), quat(vec3(0.0, 0.0, 1.0), -0.55), 1.0, restitution, friction, 0.02, true);
 
     instance_id = scene->add_instance(cube_mesh_ids[0]);
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(5.0, 8.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, 0.2, 0.01, 0.02, true);
+    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(5.0, 8.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, restitution, friction, 0.02, true);
 
     instance_id = scene->add_instance(sphere_mesh_ids[0]);
     scene->instances[instance_id].casts_shadow = true;
     scene->instances[instance_id].draw_outline = false;
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 25.0, 0.0), 0.4, 2.0, 0.2, 0.1, 0.2, false);
+    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 25.0, 0.0), 0.4, 2.0, restitution, friction, 0.2, false);
 
     instance_id = scene->add_instance(sphere_mesh_ids[0]);
     scene->instances[instance_id].casts_shadow = true;
     scene->instances[instance_id].draw_outline = false;
     transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 26.0, 0.0), 0.4, 2.0, 0.2, 0.01, 0.02, false);
+    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 26.0, 0.0), 0.4, 2.0, restitution, friction, 0.02, false);
 
     physics_engine->update(0.016);
 }
@@ -361,7 +368,10 @@ int main() {
             controls.mouse_ray.origin = scene.camera.eye;
         }
 
-        physics_scene_editor.update(0.016);
+        physics_scene_editor.update(0.004);
+        physics_scene_editor.update(0.004);
+        physics_scene_editor.update(0.004);
+        physics_scene_editor.update(0.004);
 
         renderer.resize(window_width, window_height);
         renderer.paint();

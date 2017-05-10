@@ -140,6 +140,25 @@ mat4::mat4(float a, float b, float c, float d,
     this->m[15] = p;
 }
 
+mat4 mat4::identity() {
+    return mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+            );
+}
+
+
+mat4 mat4::zero() {
+    return mat4(
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0
+            );
+}
+
 mat4 mat4::translation(const vec3 &v) {
     return mat4(
             1, 0, 0, v.x,

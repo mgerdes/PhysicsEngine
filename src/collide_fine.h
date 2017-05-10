@@ -27,8 +27,6 @@ class Collider {
         int id;
         int transform_id;
         int level;
-        float restitution;
-        float us, ud;
         RigidBody body;
 
         virtual void update_transform(Transform *transform) = 0;
@@ -89,14 +87,7 @@ class Contact {
 
         vec3 position;
         vec3 normal;
-
-        int flavor;
         float penetration;
-
-        int collision_case;
-
-        void apply_impulses();
-        void apply_impulses(float e);
 };
 
 class ContactManifold {

@@ -12,7 +12,7 @@ class PhysicsSceneEditor {
         int selected_collider_id;
         float selected_collider_distance;
         int selected_axis;
-        bool is_rotating_collider;
+        bool is_rotating_collider, is_scaling_collider;
 
     public:
         PhysicsSceneEditor(PhysicsEngine *physics_engine, Controls *controls);

@@ -1,22 +1,10 @@
 #include "physics_engine.h"
 
-int PhysicsEngine::add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass, float restitution, float us, float ud, bool is_static) {
+int PhysicsEngine::add_cube_collider(int transform_id, const vec3 &half_lengths) {
     BoxCollider *collider = new BoxCollider();
     collider->id = colliders.size();
     collider->transform_id = transform_id;
     collider->half_lengths = half_lengths;
-    collider->body.position = position;
-    collider->body.orientation = orientation;
-    collider->body.mass = mass;
-    collider->body.inertia_tensor = mat4(
-            (1.0 / 12.0) * mass * (half_lengths.x + half_lengths.y), 0.0, 0.0, 0.0,
-            0.0, (1.0 / 12.0) * mass * (half_lengths.y + half_lengths.z), 0.0, 0.0,
-            0.0, 0.0, (1.0 / 12.0) * mass * (half_lengths.z + half_lengths.x), 0.0,
-            0.0, 0.0, 0.0, 1.0
-            );
-    collider->body.restitution = restitution;
-    collider->body.friction = us;
-    collider->body.is_static = is_static;
     colliders.push_back(collider);
     return colliders.size() - 1;
 }
@@ -25,32 +13,15 @@ int PhysicsEngine::add_plane_collider(int transform_id) {
     PlaneCollider *collider = new PlaneCollider();
     collider->id = colliders.size();
     collider->transform_id = transform_id;
-    collider->normal = vec3(0.0, 1.0, 0.0);
-    collider->body.is_static = true;
-    collider->body.restitution = 0.5;
-    collider->body.mass = 1.0;
-    collider->body.friction = 0.2;
     colliders.push_back(collider);
     return colliders.size() - 1;
 }
 
-int PhysicsEngine::add_sphere_collider(int transform_id, vec3 position, float radius, float mass, float restitution, float us, float ud, bool is_static) {
+int PhysicsEngine::add_sphere_collider(int transform_id, float radius) {
     SphereCollider *collider = new SphereCollider();
     collider->id = colliders.size();
     collider->transform_id = transform_id;
     collider->radius = radius;
-    collider->body.position = position;
-    collider->body.mass = mass;
-    collider->body.friction = us;
-    collider->body.inertia_tensor = mat4(
-            (2.0 / 5.0) * mass * radius * radius, 0.0, 0.0, 0.0,
-            0.0, (2.0 / 5.0) * mass * radius * radius, 0.0, 0.0,
-            0.0, 0.0, (2.0 / 5.0) * mass * radius * radius, 0.0,
-            0.0, 0.0, 0.0, 1.0
-            );
-
-    collider->body.restitution = restitution;
-    collider->body.is_static = is_static;
     colliders.push_back(collider);
     return colliders.size() - 1;
 }
@@ -67,31 +38,13 @@ void PhysicsEngine::generate_contacts() {
     }
 }
 
-void PhysicsEngine::integrate_positions(float dt) {
-    for (int i = 0; i < colliders.size(); i++) {
-        colliders[i]->body.integrate_position(dt);
-    }
-}
-
-void PhysicsEngine::integrate_velocities(float dt) {
-    for (int i = 0; i < colliders.size(); i++) {
-        colliders[i]->body.integrate_velocity(dt);
-    }
-}
-
-void PhysicsEngine::restore_positions() {
-    for (int i = 0; i < colliders.size(); i++) {
-        colliders[i]->body.restore_position();
-    }
-}
-
 void PhysicsEngine::update(float dt) {
     for (int i = 0; i < colliders.size(); i++) {
         RigidBody *body = &colliders[i]->body;
-        body->add_force_at_point(vec3(0.0, -9.81 * body->mass, 0.0), body->position);
+        body->add_force_at_point(vec3(0.0, -9.8 * body->mass, 0.0), body->position);
     }
 
-    for (int k = 0; k < 20; k++) {
+    for (int k = 0; k < 10; k++) {
         generate_contacts();
         std::vector<Contact> contacts = contact_store.get_all();
         for (int i = 0; i < contacts.size(); i++) {
@@ -182,7 +135,6 @@ void PhysicsEngine::update(float dt) {
             b1->angular_velocity = b1->angular_velocity - i1 * vec3::cross(r1, tangent_impulse);
             b2->angular_velocity = b2->angular_velocity + i2 * vec3::cross(r2, tangent_impulse);
         }
-
     }
 
     for (int i = 0; i < colliders.size(); i++) {
@@ -220,7 +172,6 @@ void PhysicsEngine::update(float dt) {
         collider->update_transform(&(scene->transforms[collider->transform_id]));
 
         RigidBody *body = &collider->body;
-        body->apply_dampening();
         body->reset_forces();
     }
 }

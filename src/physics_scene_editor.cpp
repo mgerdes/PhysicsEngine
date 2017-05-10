@@ -5,6 +5,7 @@ PhysicsSceneEditor::PhysicsSceneEditor(PhysicsEngine *physics_engine, Controls *
     this->controls = controls;
     selected_collider_id = -1;
     is_rotating_collider = false;
+    is_scaling_collider = false;
 }
 
 void PhysicsSceneEditor::update(float dt) {
@@ -20,14 +21,27 @@ void PhysicsSceneEditor::update(float dt) {
         is_rotating_collider = !is_rotating_collider;
     }
 
+    if (controls->key_clicked[GLFW_KEY_S]) {
+        is_scaling_collider = !is_scaling_collider;
+    }
+
     if (controls->key_clicked[GLFW_KEY_C]) {
-        int instance_id = scene->add_instance(scene->box_mesh_id);
-        int transform_id = scene->instances[instance_id].transform_id;
-        vec3 new_collider_position = controls->mouse_ray.point_at_time(5.0);
-        int collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.0, 1.0), new_collider_position, quat(), 10.0, 0.2, 0.1, 0.2, true);
-        Collider *new_collider = physics_engine->colliders[collider_id];
-        Transform *new_transform = &scene->transforms[transform_id];
-        new_collider->update_transform(new_transform);
+        int instance_id, transform_id, collider_id;
+        Collider *collider;
+
+        instance_id = scene->add_instance(scene->box_mesh_id);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.0, 1.0));
+        collider = physics_engine->colliders[collider_id];
+
+        collider->body.position = controls->mouse_ray.point_at_time(5.0);
+        collider->body.orientation = quat(vec3(1.0, 0.0, 0.0), 0.0);
+        collider->body.mass = 1.0;
+        collider->body.restitution = 0.2;
+        collider->body.friction = 0.2;
+        collider->body.is_static = true;
+
+        collider->update_transform(&scene->transforms[transform_id]);
     }
 
     if (controls->right_mouse_clicked) {
@@ -65,6 +79,18 @@ void PhysicsSceneEditor::update(float dt) {
                 selected_collider->body.orientation = rotation * selected_collider->body.orientation;
                 selected_collider->update_transform(selected_transform);
             }
+            else if (is_scaling_collider) {
+                BoxCollider *box_collider = (BoxCollider*) selected_collider;
+                if (selected_axis == 0) {
+                    box_collider->half_lengths.x += 0.01 * controls->mouse_delta_x;
+                }
+                else if (selected_axis == 1) {
+                    box_collider->half_lengths.y += 0.01 * controls->mouse_delta_x;
+                }
+                else if (selected_axis == 2) {
+                    box_collider->half_lengths.z += 0.01 * controls->mouse_delta_x;
+                }
+            }
             else {
                 vec3 A = selected_collider->body.position;
                 vec3 a = axes[selected_axis];
@@ -78,8 +104,9 @@ void PhysicsSceneEditor::update(float dt) {
                 t /= (vec3::dot(a, a) * vec3::dot(b, b) - vec3::dot(a, b) * vec3::dot(a, b));
 
                 selected_collider->body.position = A + t * a - axes[selected_axis];
-                selected_collider->update_transform(selected_transform);
             }
+
+            selected_collider->update_transform(selected_transform);
         }
 
         if (controls->left_mouse_clicked && selected_axis != -1) {

@@ -11,16 +11,13 @@ class PhysicsEngine {
         ContactStore contact_store;
 
         void generate_contacts();
-        void integrate_positions(float dt);
-        void integrate_velocities(float dt);
-        void restore_positions();
     public:
         std::vector<Collider*> colliders;
         Scene *scene;
 
         void init_contact_manifolds();
-        int add_cube_collider(int transform_id, vec3 half_lengths, vec3 position, quat orientation, float mass, float restitution, float us, float ud, bool is_static);
-        int add_sphere_collider(int transform_id, vec3 position, float radius, float mass, float restitution, float us, float ud, bool is_static);
+        int add_cube_collider(int transform_id, const vec3 &half_lengths);
+        int add_sphere_collider(int transform_id, float radius);
         int add_plane_collider(int transform_id);
 
         void update(float dt);

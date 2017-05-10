@@ -46,174 +46,103 @@ GLFWwindow *init_opengl(int width, int height, const char *title) {
     return window;
 }
 
-void init_catapult_scene(PhysicsEngine *physics_engine) {
-    int plane_instance_id, plane_transform_id;
-    int cube_instance_id, cube_transform_id;
-    Scene *scene = physics_engine->scene;
-
-    plane_instance_id = scene->add_instance(plane_mesh_ids[0]);
-    scene->instances[plane_instance_id].casts_shadow = false;
-    scene->instances[plane_instance_id].draw_outline = false;
-    plane_transform_id = scene->instances[plane_instance_id].transform_id;
-    physics_engine->add_plane_collider(plane_transform_id);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(1.8, 0.1, 0.5), vec3(0.3, 2.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(1.2, 4.5, 0.0), quat(), 0.1, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.2, 3.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.2, 20.0, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.55, 50.0, 0.0), quat(), 10.0, 0.2, 0.4, 0.3, false);
-
-    physics_engine->update(0.0);
-}
-
-void init_wall_scene(PhysicsEngine *physics_engine) {
-    int plane_instance_id, plane_transform_id;
-    int cube_instance_id, cube_transform_id;
-    int collider_id;
-    Scene *scene = physics_engine->scene;
-
-    plane_instance_id = scene->add_instance(plane_mesh_ids[0]);
-    scene->instances[plane_instance_id].casts_shadow = false;
-    scene->instances[plane_instance_id].draw_outline = false;
-    plane_transform_id = scene->instances[plane_instance_id].transform_id;
-    physics_engine->add_plane_collider(plane_transform_id);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 0.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 0.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.0, 0.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 1.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(1.0, 1.5, 0.0), quat(), 1.00, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(-1.0, 1.5, 0.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(2.0, 2.0, 0.1), vec3(0.0, 5.0, -5.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    physics_engine->add_cube_collider(cube_transform_id, vec3(0.2, 0.2, 0.2), vec3(0.0, 6.5, -4.6), quat(), 0.12, 0.2, 0.4, 0.3, false);
-
-    cube_instance_id = scene->add_instance(cube_mesh_ids[0]);
-    cube_transform_id = scene->instances[cube_instance_id].transform_id;
-    collider_id = physics_engine->add_cube_collider(cube_transform_id, vec3(0.5, 0.5, 0.5), vec3(0.0, 1.4, 5.0), quat(), 1.0, 0.2, 0.4, 0.3, false);
-
-    Collider *collider = physics_engine->colliders[collider_id];
-    RigidBody *body = &collider->body;
-    body->add_force_at_point(vec3(0.0, 0.0, -2150.0), body->position);
-
-    physics_engine->update(0.016);
-}
-
 void init_jump_scene(PhysicsEngine *physics_engine) {
     int instance_id, transform_id, collider_id;
+    Collider *collider;
     Scene *scene = physics_engine->scene;
 
     float restitution = 0.5;
     float friction = 0.2;
 
-    instance_id = scene->add_instance(plane_mesh_ids[0]);
-    scene->instances[instance_id].casts_shadow = false;
-    scene->instances[instance_id].draw_outline = false;
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_plane_collider(transform_id);
+    {
+        instance_id = scene->add_instance(plane_mesh_ids[0]);
+        scene->instances[instance_id].casts_shadow = false;
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_plane_collider(transform_id);
+        collider = physics_engine->colliders[collider_id];
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 0.7, 1.0), vec3(-4.0, 0.7, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.75), 1.0, restitution, friction, 0.3, true);
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = true;
+    }
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.4, 1.0), vec3(-1.0, 1.4, 0.0), quat(vec3(0.0, 1.0, 0.0), 0.55), 1.0, restitution, friction, 0.3, true);
+    {
+        instance_id = scene->add_instance(cube_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 0.7, 1.0));
+        collider = physics_engine->colliders[collider_id];
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.1, 1.0), vec3(2.0, 2.1, -1.0), quat(vec3(0.0, 1.0, 0.0), 0.25), 1.0, restitution, friction, 0.3, true);
+        collider->body.position = vec3(-4.0, 0.7, 0.0);
+        collider->body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.75);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = true;
+        collider->body.inertia_tensor = RigidBody::create_box_inertia_tensor(1.0, vec3(1.0, 0.7, 1.0));
+    }
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.8, 1.0), vec3(5.0, 2.8, -2.0), quat(vec3(0.0, 1.0, 0.0), 0.83), 1.0, restitution, friction, 0.3, true);
+    {
+        instance_id = scene->add_instance(cube_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 1.4, 1.0));
+        collider = physics_engine->colliders[collider_id];
 
-    instance_id = scene->add_instance(sphere_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    //collider_id = physics_engine->add_cube_collider(transform_id, vec3(0.2, 0.2, 0.2), vec3(-7.0, 0.2, 0.0), quat(), 1.0, restitution, friction, 0.7, false);
-    collider_id = physics_engine->add_sphere_collider(transform_id, vec3(-7.0, 0.2, 0.0), 0.2, 1.0, restitution, friction, 0.02, false);
+        collider->body.position = vec3(-1.0, 1.4, 0.0);
+        collider->body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.55);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = true;
+        collider->body.inertia_tensor = RigidBody::create_box_inertia_tensor(1.0, vec3(1.0, 1.4, 1.0));
+    }
 
-    controlled_cube = physics_engine->colliders[collider_id];
+    {
+        instance_id = scene->add_instance(cube_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.1, 1.0));
+        collider = physics_engine->colliders[collider_id];
 
-    physics_engine->update(0.016);
-}
+        collider->body.position = vec3(2.0, 2.1, -1.0);
+        collider->body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.25);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = true;
+        collider->body.inertia_tensor = RigidBody::create_box_inertia_tensor(1.0, vec3(1.0, 2.1, 1.0));
+    }
 
-void init_ball_scene(PhysicsEngine *physics_engine) {
-    int instance_id, transform_id, collider_id;
-    Scene *scene = physics_engine->scene;
+    {
+        instance_id = scene->add_instance(cube_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(1.0, 2.8, 1.0));
+        collider = physics_engine->colliders[collider_id];
 
-    float restitution = 0.2;
-    float friction = 0.2;
+        collider->body.position = vec3(5.0, 2.8, -2.0);
+        collider->body.orientation = quat(vec3(0.0, 1.0, 0.0), 0.83);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = true;
+        collider->body.inertia_tensor = RigidBody::create_box_inertia_tensor(1.0, vec3(1.0, 2.8, 1.0));
+    }
 
-    instance_id = scene->add_instance(plane_mesh_ids[0]);
-    scene->instances[instance_id].casts_shadow = false;
-    scene->instances[instance_id].draw_outline = false;
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_plane_collider(transform_id);
+    {
+        instance_id = scene->add_instance(sphere_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_sphere_collider(transform_id, 0.2);
+        collider = physics_engine->colliders[collider_id];
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(0.0, 20.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, restitution, friction, 0.02, true);
+        collider->body.position = vec3(-7.0, 0.2, 0.2);
+        collider->body.orientation = quat(vec3(1.0, 0.0, 0.0), 0.0);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = false;
+        collider->body.inertia_tensor = RigidBody::create_sphere_inertia_tensor(1.0, 0.2);
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(-10.0, 14.0, 0.0), quat(vec3(0.0, 0.0, 1.0), -0.55), 1.0, restitution, friction, 0.02, true);
+        controlled_cube = physics_engine->colliders[collider_id];
+    }
 
-    instance_id = scene->add_instance(cube_mesh_ids[0]);
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_cube_collider(transform_id, vec3(10.0, 0.2, 2.0), vec3(5.0, 8.0, 0.0), quat(vec3(0.0, 0.0, 1.0), 0.55), 1.0, restitution, friction, 0.02, true);
-
-    instance_id = scene->add_instance(sphere_mesh_ids[0]);
-    scene->instances[instance_id].casts_shadow = true;
-    scene->instances[instance_id].draw_outline = false;
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 25.0, 0.0), 0.4, 2.0, restitution, friction, 0.2, false);
-
-    instance_id = scene->add_instance(sphere_mesh_ids[0]);
-    scene->instances[instance_id].casts_shadow = true;
-    scene->instances[instance_id].draw_outline = false;
-    transform_id = scene->instances[instance_id].transform_id;
-    physics_engine->add_sphere_collider(transform_id, vec3(0.0, 26.0, 0.0), 0.4, 2.0, restitution, friction, 0.02, false);
 
     physics_engine->update(0.016);
 }
@@ -246,10 +175,7 @@ int main() {
 
     PhysicsSceneEditor physics_scene_editor(&physics_engine, &controls);
 
-    //init_catapult_scene(&physics_engine);
-    //init_wall_scene(&physics_engine);
     init_jump_scene(&physics_engine);
-    //init_ball_scene(&physics_engine);
 
     float camera_azimuth = 0.0, camera_inclination = 0.6 * M_PI;
 
@@ -288,10 +214,8 @@ int main() {
         }
 
         if (controlled_cube) {
-            //controlled_cube->body.orientation = quat(vec3(0.0, -1.0, 0.0), camera_azimuth);
-
             if (controls.key_down[GLFW_KEY_Q]) {
-                controlled_cube->body.add_force_at_point(vec3(0.0, 50.0, 0.0), controlled_cube->body.position);
+                controlled_cube->body.velocity.y += 0.7;
             }
 
             if (controls.key_down[GLFW_KEY_W] || controls.key_down[GLFW_KEY_A]
@@ -368,10 +292,7 @@ int main() {
             controls.mouse_ray.origin = scene.camera.eye;
         }
 
-        physics_scene_editor.update(0.004);
-        physics_scene_editor.update(0.004);
-        physics_scene_editor.update(0.004);
-        physics_scene_editor.update(0.004);
+        physics_scene_editor.update(0.016);
 
         renderer.resize(window_width, window_height);
         renderer.paint();

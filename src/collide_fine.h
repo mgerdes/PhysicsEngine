@@ -7,20 +7,10 @@
 #include "rigid_body.h"
 #include "scene.h"
 
-class Contact;
+class ContactManifold;
 class BoxCollider;
 class PlaneCollider;
 class SphereCollider;
-
-class ContactStore {
-    private:
-        std::vector<Contact> contacts;
-
-    public:
-        void add(Contact contact);
-        void empty();
-        std::vector<Contact> get_all();
-};
 
 class Collider {
     public:
@@ -30,10 +20,10 @@ class Collider {
         RigidBody body;
 
         virtual void update_transform(Transform *transform) = 0;
-        virtual bool collide(Collider *collider, ContactStore *contact_store) = 0;
-        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store) = 0;   
-        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store) = 0;   
-        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store) = 0;   
+        virtual ContactManifold collide(Collider *collider) = 0;
+        virtual ContactManifold collide_with(SphereCollider *collider) = 0;   
+        virtual ContactManifold collide_with(BoxCollider *collider) = 0;   
+        virtual ContactManifold collide_with(PlaneCollider *collider) = 0;   
         virtual bool intersect(ray r, float *t_out) = 0;
 };
 
@@ -42,10 +32,10 @@ class SphereCollider : public Collider {
         float radius;
 
         virtual void update_transform(Transform *transform);
-        virtual bool collide(Collider *collider, ContactStore *contact_store);
-        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual ContactManifold collide(Collider *collider);
+        virtual ContactManifold collide_with(SphereCollider *collider);   
+        virtual ContactManifold collide_with(BoxCollider *collider);   
+        virtual ContactManifold collide_with(PlaneCollider *collider);   
         virtual bool intersect(ray r, float *t_out);
 };
 
@@ -61,10 +51,10 @@ class BoxCollider : public Collider {
         vec3 half_lengths;
 
         virtual void update_transform(Transform *transform);
-        virtual bool collide(Collider *collider, ContactStore *contact_store);
-        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual ContactManifold collide(Collider *collider);
+        virtual ContactManifold collide_with(SphereCollider *collider);   
+        virtual ContactManifold collide_with(BoxCollider *collider);   
+        virtual ContactManifold collide_with(PlaneCollider *collider);   
         virtual bool intersect(ray r, float *t_out);
 };
 
@@ -73,25 +63,24 @@ class PlaneCollider : public Collider {
         vec3 normal;
 
         virtual void update_transform(Transform *transform);
-        virtual bool collide(Collider *collider, ContactStore *contact_store);
-        virtual bool collide_with(SphereCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(BoxCollider *collider, ContactStore *contact_store);   
-        virtual bool collide_with(PlaneCollider *collider, ContactStore *contact_store);   
+        virtual ContactManifold collide(Collider *collider);
+        virtual ContactManifold collide_with(SphereCollider *collider);   
+        virtual ContactManifold collide_with(BoxCollider *collider);   
+        virtual ContactManifold collide_with(PlaneCollider *collider);   
         virtual bool intersect(ray r, float *t_out);
 };
 
 class Contact {
     public:
-        Collider *collider1;
-        Collider *collider2;
-
         vec3 position;
         vec3 normal;
         float penetration;
+        bool is_resting_contact;
 };
 
 class ContactManifold {
     public:
-        int num_contacts;
-        Contact contacts[4];
+        Collider *collider1;
+        Collider *collider2;
+        std::vector<Contact> contacts;
 };

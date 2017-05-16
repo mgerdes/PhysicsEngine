@@ -27,7 +27,7 @@ void main () {
     else {
         gl_Position = proj_mat * view_mat * model_mat * vec4(vertex_position, 1.0);
         frag_position = (model_mat * vec4(vertex_position, 1.0)).xyz;
-        frag_normal = (inverse(transpose(model_mat)) * vec4(vertex_normal, 1.0)).xyz;
+        frag_normal = normalize((inverse(transpose(model_mat)) * vec4(vertex_normal, 1.0)).xyz);
         frag_tex_coord = vertex_tex_coord;
 
         position_from_light = shadow_proj_mat * shadow_view_mat * vec4(frag_position, 1.0);

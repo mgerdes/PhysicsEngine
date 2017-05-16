@@ -8,9 +8,8 @@
 
 class PhysicsEngine {
     private:
-        ContactStore contact_store;
+        std::vector<ContactManifold> generate_contacts();
 
-        void generate_contacts();
     public:
         std::vector<Collider*> colliders;
         Scene *scene;

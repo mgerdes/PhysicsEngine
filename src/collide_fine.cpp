@@ -1,26 +1,14 @@
 #include "collide_fine.h"
 #include "renderer.h"
 
-void ContactStore::add(Contact contact) {
-    contacts.push_back(contact);
-}
-
-void ContactStore::empty() {
-    contacts.resize(0);
-}
-
-std::vector<Contact> ContactStore::get_all() {
-    return contacts;
-}
-
 void BoxCollider::update_transform(Transform *transform) {
     transform->scale = 2.0 * half_lengths;
     transform->translation = body.position;
     transform->orientation = body.orientation;
 }
 
-bool BoxCollider::collide(Collider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold BoxCollider::collide(Collider *collider) {
+    return collider->collide_with(this);
 }
 
 bool BoxCollider::contains_point(const vec3 &point) {
@@ -130,7 +118,11 @@ void BoxCollider::clip_edges(line_segment *edges, std::vector<vec3> *contact_poi
     }
 }
 
-bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
+ContactManifold BoxCollider::collide_with(SphereCollider *collider) {
+    ContactManifold manifold;
+    manifold.collider1 = collider;
+    manifold.collider2 = this;
+
     mat4 transformation = body.orientation.get_matrix();
 
     vec3 closest_pt_on_box = transformation.inverse() * (collider->body.position - body.position);
@@ -149,24 +141,26 @@ bool BoxCollider::collide_with(SphereCollider *collider, ContactStore *contact_s
     float dist = (closest_pt_on_box - collider->body.position).length_squared();
 
     if (dist > collider->radius * collider->radius) {
-        return false;
+        return manifold;
     }
 
     vec3 normal = (closest_pt_on_box - collider->body.position).normalize();
     vec3 closest_pt_on_sphere = collider->body.position + collider->radius * normal; 
 
     Contact contact;
-    contact.collider1 = collider;
-    contact.collider2 = this;
     contact.normal = normal;
     contact.position = 0.5 * (closest_pt_on_sphere + closest_pt_on_box);
     contact.penetration = (closest_pt_on_box - closest_pt_on_sphere).length();
-    contact_store->add(contact);
+    manifold.contacts.push_back(contact);
 
-    return true;
+    return manifold;
 }
 
-bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
+ContactManifold BoxCollider::collide_with(BoxCollider *collider) {
+    ContactManifold manifold;
+    manifold.collider1 = collider;
+    manifold.collider2 = this;
+
     RigidBody body1 = this->body;
     RigidBody body2 = collider->body;
 
@@ -224,7 +218,7 @@ bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_stor
         }
 
         if (i1_min > i2_max || i2_min > i1_max) {
-            return false;
+            return manifold;
         }
 
         float i1_length = i1_max - i1_min;
@@ -263,21 +257,28 @@ bool BoxCollider::collide_with(BoxCollider *collider, ContactStore *contact_stor
 
     for (int i = 0; i < unique_contact_points.size(); i++) {
         Contact contact; 
-        contact.collider1 = this;
-        contact.collider2 = collider;
         contact.position = unique_contact_points[i];
         contact.normal = axes[smallest_penetration_case];
-        if (vec3::dot(contact.normal, body1.position - body2.position) > 0) {
+        if (vec3::dot(contact.normal, body2.position - body1.position) > 0) {
             contact.normal = -1.0 * contact.normal;
         }
         contact.penetration = smallest_penetration;
-        contact_store->add(contact);
+
+        vec3 relative_velocity = (body2.velocity + vec3::cross(body2.angular_velocity, contact.position - body2.position)) 
+            - (body1.velocity + vec3::cross(body1.angular_velocity, contact.position - body1.position));
+        contact.is_resting_contact = relative_velocity.length_squared() < 0.01;
+
+        manifold.contacts.push_back(contact);
     }
 
-    return unique_contact_points.size() > 0;
+    return manifold;
 }
 
-bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
+ContactManifold BoxCollider::collide_with(PlaneCollider *collider) {
+    ContactManifold manifold;
+    manifold.collider1 = this;
+    manifold.collider2 = collider;
+
     mat4 transformation = mat4::translation(body.position) * body.orientation.get_matrix();
 
     vec3 points[8] = {
@@ -291,26 +292,21 @@ bool BoxCollider::collide_with(PlaneCollider *collider, ContactStore *contact_st
         vec3(-half_lengths.x,  -half_lengths.y,  -half_lengths.z),
     };
 
-    bool found_collision = false;
-
     for (int i = 0; i < 8; i++) {
         vec3 point_world = transformation * points[i];
 
         if (point_world.y <= 0) {
-            found_collision = true;
-
             Contact contact;
-            contact.collider1 = this;
-            contact.collider2 = collider;
             contact.position = point_world;
             contact.normal = vec3(0.0, -1.0, 0.0);
             contact.penetration = -1.0 * point_world.y;
+            contact.is_resting_contact = false;
 
-            contact_store->add(contact);
+            manifold.contacts.push_back(contact);
         }
     }
 
-    return found_collision;
+    return manifold;
 }
 
 bool BoxCollider::intersect(ray r, float *t_out) {
@@ -379,20 +375,20 @@ void PlaneCollider::update_transform(Transform *transform) {
     transform->translation = vec3(0.0, -0.01, 0.0);
 }
 
-bool PlaneCollider::collide(Collider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold PlaneCollider::collide(Collider *collider) {
+    return collider->collide_with(this);
 }
 
-bool PlaneCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold PlaneCollider::collide_with(SphereCollider *collider) {
+    return collider->collide_with(this);
 }
 
-bool PlaneCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold PlaneCollider::collide_with(BoxCollider *collider) {
+    return collider->collide_with(this);
 }
 
-bool PlaneCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
-    return false;
+ContactManifold PlaneCollider::collide_with(PlaneCollider *collider) {
+    return ContactManifold();
 }
 
 bool PlaneCollider::intersect(ray r, float *t_out) {
@@ -405,47 +401,50 @@ void SphereCollider::update_transform(Transform *transform) {
     transform->orientation = body.orientation;
 }
 
-bool SphereCollider::collide(Collider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold SphereCollider::collide(Collider *collider) {
+    return collider->collide_with(this);
 }
 
-bool SphereCollider::collide_with(SphereCollider *collider, ContactStore *contact_store) {
+ContactManifold SphereCollider::collide_with(SphereCollider *collider) {
+    ContactManifold manifold;
+    manifold.collider1 = this;
+    manifold.collider2 = collider;
+
     vec3 v1 = this->body.position;
     vec3 v2 = collider->body.position;
     vec3 r = v2 - v1;
 
     if (r.length() > collider->radius + this->radius) {
-        return false;
+        return manifold;
     }
 
     Contact contact;
-    contact.collider1 = this;
-    contact.collider2 = collider;
     contact.normal = r.normalize();
     contact.penetration = (collider->radius + this->radius) - r.length();
     contact.position = v1 + this->radius * contact.normal;
+    manifold.contacts.push_back(contact);
 
-    contact_store->add(contact);
-
-    return true;
+    return manifold;
 }
 
-bool SphereCollider::collide_with(BoxCollider *collider, ContactStore *contact_store) {
-    return collider->collide_with(this, contact_store);
+ContactManifold SphereCollider::collide_with(BoxCollider *collider) {
+    return collider->collide_with(this);
 }
 
-bool SphereCollider::collide_with(PlaneCollider *collider, ContactStore *contact_store) {
+ContactManifold SphereCollider::collide_with(PlaneCollider *collider) {
+    ContactManifold manifold;
+    manifold.collider1 = this;
+    manifold.collider2 = collider;
+
     if (body.position.y - radius < 0.0) {
         Contact contact;
-        contact.collider1 = this;
-        contact.collider2 = collider;
         contact.position = vec3(body.position.x, body.position.y - radius, body.position.z);
         contact.normal = vec3(0.0, -1.0, 0.0);
         contact.penetration = -(body.position.y - radius);
-        contact_store->add(contact);
-        return true;
+        manifold.contacts.push_back(contact);
     }
-    return false;
+
+    return manifold;
 }
 
 bool SphereCollider::intersect(ray r, float *t_out) {

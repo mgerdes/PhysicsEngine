@@ -21,7 +21,7 @@ void PhysicsSceneEditor::update(float dt) {
         is_rotating_collider = !is_rotating_collider;
     }
 
-    if (controls->key_clicked[GLFW_KEY_S]) {
+    if (controls->key_clicked[GLFW_KEY_T]) {
         is_scaling_collider = !is_scaling_collider;
     }
 
@@ -39,7 +39,7 @@ void PhysicsSceneEditor::update(float dt) {
         collider->body.mass = 1.0;
         collider->body.restitution = 0.2;
         collider->body.friction = 0.2;
-        collider->body.is_static = true;
+        collider->body.is_static = false;
 
         collider->update_transform(&scene->transforms[transform_id]);
     }

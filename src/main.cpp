@@ -127,6 +127,7 @@ void init_jump_scene(PhysicsEngine *physics_engine) {
     }
 
     {
+        /*
         instance_id = scene->add_instance(sphere_mesh_ids[0]);
         transform_id = scene->instances[instance_id].transform_id;
         collider_id = physics_engine->add_sphere_collider(transform_id, 0.2);
@@ -139,6 +140,20 @@ void init_jump_scene(PhysicsEngine *physics_engine) {
         collider->body.friction = friction;
         collider->body.is_static = false;
         collider->body.inertia_tensor = RigidBody::create_sphere_inertia_tensor(1.0, 0.2);
+        */
+
+        instance_id = scene->add_instance(cube_mesh_ids[0]);
+        transform_id = scene->instances[instance_id].transform_id;
+        collider_id = physics_engine->add_cube_collider(transform_id, vec3(0.2, 0.2, 0.2));
+        collider = physics_engine->colliders[collider_id];
+
+        collider->body.position = vec3(-7.0, 0.2, 0.2);
+        collider->body.orientation = quat(vec3(1.0, 0.0, 0.0), 0.0);
+        collider->body.mass = 1.0;
+        collider->body.restitution = restitution;
+        collider->body.friction = friction;
+        collider->body.is_static = false;
+        collider->body.inertia_tensor = RigidBody::create_box_inertia_tensor(1.0, vec3(0.2, 0.2, 0.2));
 
         controlled_cube = physics_engine->colliders[collider_id];
     }
